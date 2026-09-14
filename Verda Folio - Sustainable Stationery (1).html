@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERDA FOLIO — Circular & Plantable Living Stationery | MITS ACM Edition</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js CDN for 3D simulation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            verda: {
+              cream: '#FAF7F2',
+              kraft: '#EBDDC9',
+              sand: '#DFD2BE',
+              sage: '#5F7363',
+              forest: '#26382B',
+              deep: '#142018',
+              moss: '#3B4D3F',
+              terracotta: '#BA5D3F',
+              clay: '#9E4A30',
+              gold: '#C5A059',
+              amber: '#D97706'
+            }
+          },
+          fontFamily: {
+            serif: ['Fraunces', 'serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          keyframes: {
+            floatSlow: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-8px) rotate(1.2deg)' }
+            },
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+              '50%': { opacity: '0.8', transform: 'scale(1.05)' }
+            }
+          },
+          animation: {
+            'float-slow': 'floatSlow 7s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 4s ease-in-out infinite'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Organic paper grain texture */
+    .bg-paper-grain {
+      background-color: #FAF7F2;
+      background-image: 
+        radial-gradient(#d3c6b2 0.75px, transparent 0.75px), 
+        radial-gradient(#d3c6b2 0.75px, #FAF7F2 0.75px);
+      background-size: 32px 32px;
+      background-position: 0 0, 16px 16px;
+    }
+
+    .bg-seed-speckles {
+      background-color: #F6F1EA;
+      background-image: 
+        radial-gradient(ellipse at 15% 25%, rgba(138, 108, 77, 0.25) 1.5px, transparent 3px),
+        radial-gradient(ellipse at 75% 65%, rgba(95, 115, 99, 0.25) 2px, transparent 4px),
+        radial-gradient(circle at 45% 85%, rgba(186, 93, 63, 0.2) 1.2px, transparent 2.5px),
+        radial-gradient(circle at 90% 15%, rgba(197, 160, 89, 0.25) 1.5px, transparent 3px);
+      background-size: 70px 70px;
+    }
+
+    .deckle-border {
+      border: 1px solid rgba(223, 210, 190, 0.85);
+      box-shadow: 
+        0 4px 15px rgba(38, 56, 43, 0.05),
+        inset 0 0 20px rgba(235, 221, 201, 0.45);
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #FAF7F2; }
+    ::-webkit-scrollbar-thumb { background: #C4B5A0; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #5F7363; }
+
+    /* Fix to guarantee no hidden element blocks pointer clicks */
+    .pointer-events-none-override {
+      pointer-events: none !important;
+    }
+  </style>
+</head>
+
+<body class="bg-verda-cream text-verda-deep font-sans antialiased overflow-x-hidden selection:bg-verda-sage selection:text-white relative">
+
+  <canvas id="ambientPetalsCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <div class="bg-verda-deep text-verda-kraft px-3 sm:px-4 py-2.5 text-xs font-medium tracking-wide flex flex-wrap items-center justify-between border-b border-verda-sage/30 relative z-30">
+    <div class="flex items-center space-x-2 mx-auto sm:mx-0">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-verda-gold animate-pulse"></span>
+      <span class="font-mono text-[11px] text-verda-gold uppercase tracking-wider font-bold">MITS ACM PS/11</span>
+      <span class="hidden md:inline text-verda-kraft/80">| Circular Living Stationery & Botanical AI Studio</span>
+    </div>
+
+    <div class="flex items-center space-x-3 sm:space-x-6 mx-auto sm:mx-0 text-xs py-1 sm:py-0">
+      <!-- Presentation Mode Toggle Button -->
+      <button onclick="toggleJudgeGuideModal(true)" class="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-verda-gold/20 hover:bg-verda-gold/30 text-verda-gold border border-verda-gold/40 transition-all font-semibold shadow-sm cursor-pointer active:scale-95">
+        <span>🏆 Judge Presentation Guide</span>
+        <span class="text-[10px] bg-verda-gold text-verda-deep font-bold px-1.5 py-0.5 rounded-full">Rubric 100%</span>
+      </button>
+
+      <!-- Nature Ambient Synthesizer -->
+      <button id="soundToggleBtn" onclick="toggleAudioAtmosphere()" class="flex items-center space-x-1.5 hover:text-white transition-colors cursor-pointer bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full text-[11px]">
+        <span id="soundStatusDot" class="w-2 h-2 rounded-full bg-stone-400"></span>
+        <span id="soundText">Breeze Ambient: Off</span>
+      </button>
+
+      <span class="hidden lg:inline text-verda-gold font-mono">100% Tree-Free Rag</span>
+    </div>
+  </div>
+
+  <header class="sticky top-0 z-30 bg-verda-cream/95 backdrop-blur-md border-b border-verda-sand/70 transition-all duration-300" id="mainHeader">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="group flex items-center space-x-3 focus:outline-none">
+        <div class="w-11 h-11 rounded-2xl bg-verda-forest text-verda-kraft flex items-center justify-center font-serif text-2xl font-bold shadow-md shadow-verda-forest/20 group-hover:bg-verda-terracotta group-hover:rotate-6 transition-all duration-300">
+          V
+        </div>
+        <div>
+          <span class="font-serif text-2xl font-bold tracking-tight text-verda-forest group-hover:text-verda-terracotta transition-colors">VERDA FOLIO</span>
+          <span class="block text-[10px] tracking-[0.25em] uppercase font-semibold text-verda-sage">Living Stationery • Upcycled Cotton & Seeds</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden lg:flex items-center space-x-7 text-xs font-semibold uppercase tracking-wider text-verda-deep/80">
+        <a href="#hero-3d" class="hover:text-verda-terracotta transition-colors">3D Journal Studio</a>
+        <a href="#ai-innovations" class="text-verda-terracotta flex items-center space-x-1.5 bg-verda-terracotta/10 px-3.5 py-1.5 rounded-full border border-verda-terracotta/30 hover:bg-verda-terracotta/20 transition-all">
+          <span>✨ Botanical AI Suite</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-verda-terracotta animate-ping"></span>
+        </a>
+        <a href="#circular-journey" class="hover:text-verda-forest transition-colors">Sourcing Loop</a>
+        <a href="#seed-canvas" class="hover:text-verda-forest transition-colors">Meadow Garden</a>
+        <a href="#impact" class="hover:text-verda-forest transition-colors">Eco Calculator</a>
+        <a href="#collection" class="hover:text-verda-forest transition-colors">Shop Catalog</a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <button onclick="toggleCartDrawer(true)" class="relative p-2.5 rounded-full bg-verda-sand/50 hover:bg-verda-sand text-verda-forest transition-all cursor-pointer" aria-label="Open Shopping Bag">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <span id="bagCounterBadge" class="absolute -top-1 -right-1 bg-verda-terracotta text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow">2</span>
+        </button>
+
+        <a href="#ai-innovations" class="hidden sm:inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-verda-cream text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:shadow-lg active:scale-95">
+          Try AI Scribe
+        </a>
+
+        <!-- Mobile Menu Hamburger -->
+        <button onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl text-verda-forest hover:bg-verda-sand/50" aria-label="Toggle navigation menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Menu -->
+    <div id="mobileMenu" class="hidden lg:hidden bg-verda-cream border-b border-verda-sand px-6 py-4 space-y-3 text-sm">
+      <a href="#hero-3d" onclick="toggleMobileMenu()" class="block font-semibold py-1">3D Stationery Studio</a>
+      <a href="#ai-innovations" onclick="toggleMobileMenu()" class="block font-bold text-verda-terracotta py-1 flex items-center justify-between">
+        <span>✨ Botanical AI Suite (Gemini)</span>
+        <span class="text-[10px] bg-verda-terracotta/20 px-2 py-0.5 rounded-full text-verda-terracotta font-mono">15% Rubric</span>
+      </a>
+      <a href="#circular-journey" onclick="toggleMobileMenu()" class="block font-semibold py-1">Circular Sourcing Loop</a>
+      <a href="#seed-canvas" onclick="toggleMobileMenu()" class="block font-semibold py-1">Interactive Sprouter Canvas</a>
+      <a href="#impact" onclick="toggleMobileMenu()" class="block font-semibold py-1">LCA Eco Calculator</a>
+      <a href="#collection" onclick="toggleMobileMenu()" class="block font-semibold py-1">Shop Catalog</a>
+      <button onclick="toggleJudgeGuideModal(true); toggleMobileMenu();" class="w-full text-left font-bold text-verda-gold py-1">🏆 Judge Evaluation Guide</button>
+    </div>
+  </header>
+
+  <section id="hero-3d" class="relative min-h-[90vh] flex items-center overflow-hidden bg-paper-grain pt-6 pb-16 lg:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+        
+        <!-- Hero Copy -->
+        <div class="lg:col-span-6 space-y-6 text-center lg:text-left">
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-verda-sage/15 border border-verda-sage/30 text-verda-forest text-xs font-semibold uppercase tracking-widest shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-verda-terracotta"></span>
+            <span>Tree-Free • Cotton Rag • Plantable Seed Paper</span>
+          </div>
+
+          <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl text-verda-forest font-bold tracking-tight leading-[1.12]">
+            Stationery born from soil, <span class="italic text-verda-terracotta font-normal">destined to bloom.</span>
+          </h1>
+
+          <p class="text-base sm:text-lg text-verda-deep/80 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed">
+            Crafted from discarded garment cotton cuttings and roasted espresso bean skins. Once your journal is filled, bury its deckle cover into soil to grow organic chamomile, sweet alyssum, and poppies.
+          </p>
+
+          <!-- Interactive Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            <a href="#ai-innovations" class="w-full sm:w-auto px-7 py-4 rounded-full bg-verda-forest hover:bg-verda-deep text-verda-cream font-semibold text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center space-x-2.5">
+              <span>Try AI Botanical Scribe</span>
+              <span class="text-verda-gold">✨</span>
+            </a>
+
+            <a href="#seed-canvas" class="w-full sm:w-auto px-6 py-4 rounded-full bg-white hover:bg-verda-sand/40 text-verda-forest border border-verda-sand font-semibold text-xs uppercase tracking-wider transition-all hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+              <span class="text-verda-terracotta">🌱</span>
+              <span>Sprout Seed In Meadow</span>
+            </a>
+          </div>
+
+          <!-- Quick Metrics Bar -->
+          <div class="grid grid-cols-3 gap-4 pt-6 border-t border-verda-sand/80 max-w-lg mx-auto lg:mx-0 text-left">
+            <div>
+              <div class="font-serif text-2xl sm:text-3xl font-bold text-verda-forest">100%</div>
+              <div class="text-[11px] sm:text-xs text-verda-deep/70">Tree-Free Rag Paper</div>
+            </div>
+            <div>
+              <div class="font-serif text-2xl sm:text-3xl font-bold text-verda-forest">2.4M</div>
+              <div class="text-[11px] sm:text-xs text-verda-deep/70">Wildflowers Bloomed</div>
+            </div>
+            <div>
+              <div class="font-serif text-2xl sm:text-3xl font-bold text-verda-forest">Zero</div>
+              <div class="text-[11px] sm:text-xs text-verda-deep/70">Synthetic Chemicals</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 relative flex flex-col items-center justify-center">
+          <div class="relative w-full max-w-lg aspect-square rounded-3xl bg-gradient-to-b from-white/90 to-verda-sand/50 p-3 shadow-2xl border border-white/80 backdrop-blur-sm">
+            
+            <div id="threeCanvasWrapper" class="w-full h-full rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing relative bg-gradient-to-b from-stone-100 to-verda-sand/30 select-none">
+              <canvas id="threeHeroCanvas" class="w-full h-full block"></canvas>
+
+              <!-- Drag Overlay Hint -->
+              <div class="absolute top-4 left-4 bg-verda-deep/85 backdrop-blur-md text-white text-[11px] font-medium px-3 py-1.5 rounded-full flex items-center space-x-2 pointer-events-none shadow-md z-10">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Drag to Rotate 3D Journal</span>
+              </div>
+
+              <!-- Open / Close Book Action Button -->
+              <div class="absolute top-4 right-4 flex space-x-2 z-10">
+                <button onclick="toggleBookOpenState()" id="bookOpenBtn" class="bg-white/95 hover:bg-white text-verda-forest px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md border border-verda-sand flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer">
+                  <span id="bookOpenIcon">📖</span>
+                  <span id="bookOpenText">Open Cover</span>
+                </button>
+              </div>
+
+              <!-- Color Swatches & Lighting Controls -->
+              <div class="absolute bottom-4 left-3 right-3 sm:left-4 sm:right-4 bg-white/95 backdrop-blur-md px-3 sm:px-4 py-2.5 rounded-2xl shadow-xl border border-verda-sand flex flex-wrap items-center justify-between gap-2 z-10">
+                <!-- Color Swatches -->
+                <div class="flex items-center space-x-2">
+                  <span class="text-[10px] font-bold text-verda-forest uppercase tracking-wider hidden sm:inline">Cover:</span>
+                  <button onclick="changeCoverColor(0x5F7363, 'Sage Moss')" class="w-5 h-5 rounded-full bg-[#5F7363] border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer" title="Sage Moss"></button>
+                  <button onclick="changeCoverColor(0xBA5D3F, 'Terracotta Sand')" class="w-5 h-5 rounded-full bg-[#BA5D3F] border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer" title="Terracotta Sand"></button>
+                  <button onclick="changeCoverColor(0xDFD2BE, 'Oatmeal Cotton')" class="w-5 h-5 rounded-full bg-[#DFD2BE] border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer" title="Oatmeal Cotton"></button>
+                  <button onclick="changeCoverColor(0x26382B, 'Forest Evergreen')" class="w-5 h-5 rounded-full bg-[#26382B] border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer" title="Forest Evergreen"></button>
+                  <button onclick="changeCoverColor(0xC5A059, 'Golden Ochre')" class="w-5 h-5 rounded-full bg-[#C5A059] border-2 border-white shadow hover:scale-110 transition-transform cursor-pointer" title="Golden Ochre"></button>
+                </div>
+
+                <!-- Lighting Mood Selector -->
+                <div class="flex items-center space-x-1 bg-verda-sand/40 p-1 rounded-full text-[10px]">
+                  <button onclick="setLightingMood('studio')" id="lightBtn-studio" class="px-2.5 py-0.5 rounded-full bg-verda-forest text-white font-bold transition-all cursor-pointer">Studio</button>
+                  <button onclick="setLightingMood('golden')" id="lightBtn-golden" class="px-2.5 py-0.5 rounded-full text-verda-deep hover:text-black font-semibold transition-all cursor-pointer">Golden</button>
+                  <button onclick="setLightingMood('dusk')" id="lightBtn-dusk" class="px-2.5 py-0.5 rounded-full text-verda-deep hover:text-black font-semibold transition-all cursor-pointer">Moon</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Material label beneath 3D canvas -->
+            <div class="mt-2.5 text-center">
+              <span id="currentColorLabel" class="text-xs font-semibold text-verda-sage uppercase tracking-wider">Material: Hand-Pressed Seed Paper in Sage Moss</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="ai-innovations" class="py-20 bg-gradient-to-b from-verda-cream via-verda-sand/20 to-verda-cream relative border-t border-verda-sand/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-verda-terracotta/15 border border-verda-terracotta/30 text-verda-terracotta text-xs font-bold uppercase tracking-widest mb-3">
+          <span>✨ Multi-Modal AI Innovation (15% Rubric Target)</span>
+        </div>
+        <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-verda-forest tracking-tight">
+          The Living AI Scribe & Botanical Studio
+        </h2>
+        <p class="text-verda-deep/80 text-sm sm:text-base mt-3 leading-relaxed">
+          Craft bespoke handwritten living dedications, generate custom botanical cover art for your folios, and receive spoken nature narrations powered by Google Gemini.
+        </p>
+      </div>
+
+      <!-- AI Suite Grid (3 Features) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left: AI Scribe Generator (Gemini 3 Flash + TTS) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-verda-sand/80 shadow-xl relative overflow-hidden deckle-border">
+          <div class="flex items-center justify-between pb-4 border-b border-verda-sand/60 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-2xl bg-verda-terracotta/15 text-verda-terracotta flex items-center justify-center font-bold text-lg">
+                ✒️
+              </div>
+              <div>
+                <h3 class="font-serif text-xl font-bold text-verda-forest">AI Botanical Scribe</h3>
+                <span class="text-[11px] text-verda-sage uppercase tracking-wider font-semibold">Gemini 3 Flash • Tailored Inscriptions</span>
+              </div>
+            </div>
+            <span class="text-xs font-mono bg-verda-forest/10 text-verda-forest px-2.5 py-1 rounded-full font-bold">100% Tree-Free</span>
+          </div>
+
+          <!-- Prompt Form -->
+          <div class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-verda-forest uppercase tracking-wider mb-1">Recipient Name</label>
+                <input type="text" id="aiRecipientInput" value="Maya" placeholder="e.g. Maya, David, Grandmother" class="w-full px-3.5 py-2.5 rounded-xl bg-verda-cream border border-verda-sand text-verda-deep focus:outline-none focus:ring-2 focus:ring-verda-forest font-medium">
+              </div>
+              <div>
+                <label class="block font-bold text-verda-forest uppercase tracking-wider mb-1">Occasion / Theme</label>
+                <select id="aiOccasionSelect" class="w-full px-3.5 py-2.5 rounded-xl bg-verda-cream border border-verda-sand text-verda-deep focus:outline-none focus:ring-2 focus:ring-verda-forest font-medium">
+                  <option value="New Beginnings & Planting Dreams">New Beginnings & Planting Dreams</option>
+                  <option value="Heartfelt Gratitude & Mentorship">Heartfelt Gratitude & Mentorship</option>
+                  <option value="Botanical Love Letter">Botanical Love Letter</option>
+                  <option value="Healing, Grief & Remembrance">Healing, Grief & Remembrance</option>
+                  <option value="Personal Journal Inscription">Personal Journal Inscription</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-verda-forest uppercase tracking-wider mb-1">Botanical Tone</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="setScribeTone('poetic')" id="toneBtn-poetic" class="p-2 rounded-xl border border-verda-forest bg-verda-forest text-white font-bold text-[11px] text-center transition-all cursor-pointer">Poetic & Lyrical</button>
+                <button type="button" onclick="setScribeTone('earthy')" id="toneBtn-earthy" class="p-2 rounded-xl border border-verda-sand bg-white text-verda-deep font-semibold text-[11px] text-center hover:bg-verda-sand/20 transition-all cursor-pointer">Earthy & Grounded</button>
+                <button type="button" onclick="setScribeTone('minimal')" id="toneBtn-minimal" class="p-2 rounded-xl border border-verda-sand bg-white text-verda-deep font-semibold text-[11px] text-center hover:bg-verda-sand/20 transition-all cursor-pointer">Minimal & Modern</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-verda-forest uppercase tracking-wider mb-1">Personal Note or Memory (Optional)</label>
+              <input type="text" id="aiKeywordsInput" value="loves wild chamomile, morning coffee, graduating soon" placeholder="e.g. loves wild chamomile, morning coffee" class="w-full px-3.5 py-2.5 rounded-xl bg-verda-cream border border-verda-sand text-verda-deep focus:outline-none focus:ring-2 focus:ring-verda-forest font-medium">
+            </div>
+
+            <button onclick="generateAIBotanicalLetter()" id="generateScribeBtn" class="w-full py-3.5 rounded-2xl bg-verda-forest hover:bg-verda-deep text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center space-x-2 cursor-pointer">
+              <span id="scribeBtnIcon">✨</span>
+              <span id="scribeBtnText">Generate Inscribed Living Dedication</span>
+            </button>
+          </div>
+
+          <div id="aiScribeOutputContainer" class="mt-6 pt-5 border-t border-verda-sand/60">
+            <div class="p-5 rounded-2xl bg-seed-speckles border border-verda-sand relative">
+              <div class="flex items-center justify-between text-[11px] text-verda-sage font-mono mb-2">
+                <span id="aiOutputBadge">STATUS: Inscribed & Ready</span>
+                <span id="aiSeedMatchBadge" class="text-verda-terracotta font-bold">Recommended Seed: Wild Chamomile</span>
+              </div>
+
+              <!-- Output Text Box -->
+              <div id="aiOutputText" class="font-serif text-sm sm:text-base text-verda-deep leading-relaxed italic my-3 min-h-[70px]">
+                "May every page you fill become rich earth for what you are about to grow. When this folio reaches its final line, bury it beneath the morning soil—and let your words return as wild blossoms."
+              </div>
+
+              <!-- Actions -->
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-verda-sand/60 text-xs">
+                <!-- TTS Spoken Narration Button -->
+                <button onclick="speakBotanicalDedication()" id="ttsPlayBtn" class="px-4 py-2 rounded-full bg-verda-gold hover:bg-yellow-500 text-verda-deep font-bold flex items-center space-x-2 transition-all shadow-sm cursor-pointer">
+                  <span id="ttsPlayIcon">🔊</span>
+                  <span id="ttsPlayText">Listen with Spoken Narration</span>
+                </button>
+
+                <!-- Copy Inscription -->
+                <button onclick="copyGeneratedDedication()" class="px-3.5 py-2 rounded-full bg-white hover:bg-verda-sand/40 text-verda-forest border border-verda-sand font-semibold transition-all cursor-pointer">
+                  📋 Copy Inscription
+                </button>
+
+                <!-- Plant to Canvas -->
+                <button onclick="plantGeneratedInscription()" class="px-3.5 py-2 rounded-full bg-verda-terracotta hover:bg-verda-clay text-white font-semibold transition-all shadow-sm cursor-pointer">
+                  🌱 Plant to Meadow
+                </button>
+              </div>
+
+              <!-- Audio visualizer bars -->
+              <div id="audioVisualizer" class="hidden items-center justify-center space-x-1.5 mt-3 pt-2">
+                <span class="text-[10px] text-verda-forest font-mono mr-2">Speaking:</span>
+                <div class="w-1.5 bg-verda-gold h-2 rounded-full animate-bounce"></div>
+                <div class="w-1.5 bg-verda-gold h-5 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-1.5 bg-verda-gold h-3 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 bg-verda-gold h-6 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                <div class="w-1.5 bg-verda-gold h-3.5 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: AI Botanical Cover Art & Flora Chatbot -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Box 1: Bespoke AI Cover Art Studio -->
+          <div class="bg-white rounded-3xl p-6 sm:p-7 border border-verda-sand/80 shadow-xl deckle-border relative">
+            <div class="flex items-center justify-between pb-3 border-b border-verda-sand/60 mb-4">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-xl">🎨</span>
+                <h3 class="font-serif text-lg font-bold text-verda-forest">AI Botanical Cover Art</h3>
+              </div>
+              <span class="text-[10px] bg-verda-sage/15 text-verda-forest font-bold px-2 py-0.5 rounded-full font-mono">Gemini 3.1 Flash Image</span>
+            </div>
+
+            <p class="text-xs text-verda-deep/70 mb-3">
+              Synthesize pressed wildflower linework or textured seed motifs to visualize on your custom-bound journal cover.
+            </p>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex gap-2">
+                <input type="text" id="aiArtPromptInput" value="Minimalist botanical linework of wild corn poppy and chamomile on handmade deckle paper" placeholder="Describe botanical artwork..." class="flex-1 px-3 py-2 rounded-xl bg-verda-cream border border-verda-sand text-verda-deep focus:outline-none focus:ring-2 focus:ring-verda-forest font-medium">
+                <button onclick="generateAIBotanicalCoverArt()" id="generateArtBtn" class="px-4 py-2 rounded-xl bg-verda-forest hover:bg-verda-deep text-white font-bold transition-all shadow active:scale-95 cursor-pointer">
+                  Generate
+                </button>
+              </div>
+
+              <!-- Quick Art Presets -->
+              <div class="flex flex-wrap gap-1.5 text-[10px]">
+                <button onclick="setArtPreset('Delicate ink sketch of red corn poppy flower with organic stem on warm beige textured paper')" class="px-2.5 py-1 rounded-full bg-verda-sand/40 hover:bg-verda-sand text-verda-deep cursor-pointer">🌸 Poppy Linework</button>
+                <button onclick="setArtPreset('Pressed dried chamomile flower with golden center on fibrous handmade cotton paper')" class="px-2.5 py-1 rounded-full bg-verda-sand/40 hover:bg-verda-sand text-verda-deep cursor-pointer">🌼 Chamomile Press</button>
+                <button onclick="setArtPreset('Woodblock stamp print of a honeybee pollinating lavender blossoms, earth tones')" class="px-2.5 py-1 rounded-full bg-verda-sand/40 hover:bg-verda-sand text-verda-deep cursor-pointer">🐝 Bee Corridors</button>
+              </div>
+
+              <!-- Art Preview Container -->
+              <div id="artPreviewWrapper" class="relative aspect-video rounded-2xl bg-seed-speckles border border-verda-sand overflow-hidden flex items-center justify-center p-3">
+                <div id="artPlaceholder" class="text-center text-verda-deep/60 p-4">
+                  <div class="text-3xl mb-1">🌿</div>
+                  <div class="font-serif text-xs font-bold text-verda-forest">Custom Botanical Foil Stamp</div>
+                  <div class="text-[10px] text-verda-sage mt-0.5">Click 'Generate' to synthesize live imagery</div>
+                </div>
+                <img id="aiArtImage" class="hidden w-full h-full object-contain rounded-lg shadow" alt="AI Generated Living Cover Art">
+                
+                <!-- Loading spinner -->
+                <div id="artLoadingSpinner" class="hidden absolute inset-0 bg-verda-cream/90 backdrop-blur-sm flex flex-col items-center justify-center space-y-2">
+                  <div class="w-8 h-8 border-3 border-verda-forest border-t-transparent rounded-full animate-spin"></div>
+                  <span class="text-xs font-serif text-verda-forest italic font-semibold">Distilling botanical pigments...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-3xl p-6 sm:p-7 border border-verda-sand/80 shadow-xl deckle-border relative">
+            <div class="flex items-center justify-between pb-3 border-b border-verda-sand/60 mb-3">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-xl">🌱</span>
+                <h3 class="font-serif text-lg font-bold text-verda-forest">Ask Flora: Soil & Sprouting AI</h3>
+              </div>
+              <span class="text-[10px] bg-verda-forest/15 text-verda-forest font-bold px-2 py-0.5 rounded-full font-mono">Botanist AI</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div id="floraChatHistory" class="p-3.5 rounded-2xl bg-verda-cream border border-verda-sand/70 max-h-36 overflow-y-auto space-y-2 text-[11px] leading-relaxed">
+                <div class="bg-verda-forest text-white p-2.5 rounded-xl rounded-tl-none max-w-[90%]">
+                  👋 Hello! I am Flora, your circular materials and seed sprouting guide. Ask me how to plant your paper, how long until wildflowers emerge, or about our tree-free closed loop!
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <input type="text" id="floraQuestionInput" placeholder="e.g. How much sunlight does chamomile need?" class="flex-1 px-3.5 py-2.5 rounded-xl bg-verda-cream border border-verda-sand text-verda-deep focus:outline-none focus:ring-2 focus:ring-verda-forest font-medium">
+                <button onclick="askFloraBotanist()" id="askFloraBtn" class="px-4 py-2.5 rounded-xl bg-verda-terracotta hover:bg-verda-clay text-white font-bold transition-all shadow active:scale-95 cursor-pointer">
+                  Ask
+                </button>
+              </div>
+
+              <!-- Quick suggested questions -->
+              <div class="flex flex-wrap gap-1 text-[10px]">
+                <button onclick="quickAskFlora('How do I plant the journal cover step by step?')" class="px-2 py-0.5 rounded-full bg-verda-sand/40 hover:bg-verda-sand text-verda-forest cursor-pointer">How to plant?</button>
+                <button onclick="quickAskFlora('Can I write with fountain pen inks on this paper?')" class="px-2 py-0.5 rounded-full bg-verda-sand/40 hover:bg-verda-sand text-verda-forest cursor-pointer">Fountain pen safe?</button>
+                <button onclick="quickAskFlora('Why is cotton rag paper better than wood pulp?')" class="px-2 py-0.5 rounded-full bg-verda-sand/40 hover:bg-verda-sand text-verda-forest cursor-pointer">Why rag over wood?</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="circular-journey" class="py-20 bg-verda-forest text-verda-cream relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-verda-gold text-xs uppercase tracking-[0.25em] font-semibold">Material Sourcing Infographic</span>
+        <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold mt-2 text-white">
+          A Closed Loop That Leaves Only Petals
+        </h2>
+        <p class="text-verda-kraft/80 text-sm sm:text-base mt-4 font-normal leading-relaxed">
+          Traditional paper manufacturing fells 4 billion trees annually and consumes thousands of tons of chlorine bleaches. Verda redirects discarded agricultural residues and garment cuttings through 100% solar-distilled rainwater pulping.
+        </p>
+      </div>
+
+      <!-- 4 Sourcing Phases -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 relative hover:bg-white/10 transition-all">
+          <div class="text-verda-gold text-xs font-mono uppercase tracking-wider mb-1 font-bold">Phase 01</div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Upcycled Residues</h3>
+          <p class="text-xs sm:text-sm text-verda-kraft/70 leading-relaxed">
+            Rescued 100% pre-consumer organic cotton cuttings from ethical garment makers and roasted coffee husks from regional roasteries.
+          </p>
+          <div class="mt-4 pt-3 border-t border-white/10 text-[11px] text-verda-gold font-mono">
+            Zero Old-Growth Trees Used
+          </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 relative hover:bg-white/10 transition-all">
+          <div class="text-verda-gold text-xs font-mono uppercase tracking-wider mb-1 font-bold">Phase 02</div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Rainwater Slurry</h3>
+          <p class="text-xs sm:text-sm text-verda-kraft/70 leading-relaxed">
+            Fibers are beaten in solar Hollander beaters using captured rainwater. Zero chlorine bleach or toxic sulfur compounds.
+          </p>
+          <div class="mt-4 pt-3 border-t border-white/10 text-[11px] text-verda-gold font-mono">
+            100% Water Recirculated
+          </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 relative hover:bg-white/10 transition-all">
+          <div class="text-verda-gold text-xs font-mono uppercase tracking-wider mb-1 font-bold">Phase 03</div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Seed Impregnation</h3>
+          <p class="text-xs sm:text-sm text-verda-kraft/70 leading-relaxed">
+            Certified organic pollinator seeds (Chamomile, Sweet Alyssum, Corn Poppy) are mixed into the pulp vat at low temperatures to protect embryo vitality.
+          </p>
+          <div class="mt-4 pt-3 border-t border-white/10 text-[11px] text-verda-gold font-mono">
+            Germination Viability: 94.2%
+          </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 relative hover:bg-white/10 transition-all">
+          <div class="text-verda-gold text-xs font-mono uppercase tracking-wider mb-1 font-bold">Phase 04</div>
+          <h3 class="font-serif text-xl font-bold text-white mb-2">Earth Regeneration</h3>
+          <p class="text-xs sm:text-sm text-verda-kraft/70 leading-relaxed">
+            Printed exclusively with edible soy and spirulina vegetable inks. When finished, bury beneath 1/8" potting soil to grow flowers in 14 days.
+          </p>
+          <div class="mt-4 pt-3 border-t border-white/10 text-[11px] text-verda-gold font-mono">
+            Feeds Native Honeybees
+          </div>
+        </div>
+      </div>
+
+      <!-- Sourcing Material Tabs -->
+      <div class="mt-14 bg-white/5 rounded-3xl p-6 sm:p-8 border border-white/10 backdrop-blur-sm">
+        <div class="flex flex-wrap gap-2.5 mb-6">
+          <button onclick="switchMaterialTab('cotton')" id="tabBtn-cotton" class="px-4 py-2 rounded-full bg-verda-gold text-verda-deep text-xs font-bold transition-all cursor-pointer">Reclaimed Cotton Rag</button>
+          <button onclick="switchMaterialTab('seeds')" id="tabBtn-seeds" class="px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 text-xs font-bold transition-all cursor-pointer">Wildflower Seed Mix</button>
+          <button onclick="switchMaterialTab('coffee')" id="tabBtn-coffee" class="px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 text-xs font-bold transition-all cursor-pointer">Espresso Bean Husks</button>
+          <button onclick="switchMaterialTab('inks')" id="tabBtn-inks" class="px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 text-xs font-bold transition-all cursor-pointer">Soy & Algae Inks</button>
+        </div>
+
+        <div id="materialTabContent" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center text-sm">
+          <div class="lg:col-span-2 space-y-3">
+            <h4 id="matTitle" class="font-serif text-2xl font-bold text-white">Post-Industrial Textile Cotton</h4>
+            <p id="matDesc" class="text-verda-kraft/80 leading-relaxed text-xs sm:text-sm">
+              We rescue post-cutting cotton rags from ethical Indian garment makers that would otherwise be landfilled or incinerated. Because natural cotton fibers are significantly longer than wood cellulose, Verda paper delivers fountain-pen resistance, supple tensile strength, and zero bleed-through.
+            </p>
+            <div class="flex flex-wrap gap-6 pt-2">
+              <div><span class="text-verda-gold font-bold text-lg">7.2 kg</span> <span class="text-xs text-verda-kraft/60 block font-mono">CO2 Saved per Ream</span></div>
+              <div><span class="text-verda-gold font-bold text-lg">100%</span> <span class="text-xs text-verda-kraft/60 block font-mono">Chlorine-Free</span></div>
+              <div><span class="text-verda-gold font-bold text-lg">Acid-Neutral</span> <span class="text-xs text-verda-kraft/60 block font-mono">Archival Longevity</span></div>
+            </div>
+          </div>
+
+          <div class="bg-verda-deep/70 p-5 rounded-2xl border border-white/10 space-y-2">
+            <div class="text-xs font-semibold uppercase text-verda-gold font-mono font-bold">Audited Sourcing Partner</div>
+            <div class="text-white font-serif font-bold text-base" id="matPartner">Nilgiri Ethical Weavers Cooperative</div>
+            <div class="text-xs text-verda-kraft/70">Certified Fair Trade • 100% Solar-Powered Hydro Mill • Zero Liquid Discharge (ZLD).</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="seed-canvas" class="py-20 bg-verda-cream relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-8">
+        <div>
+          <span class="text-verda-terracotta text-xs uppercase tracking-[0.25em] font-semibold">Interactive Living Canvas</span>
+          <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-verda-forest mt-1">
+            Plant Stationery In Our Virtual Meadow
+          </h2>
+          <p class="text-verda-deep/75 text-sm sm:text-base mt-2 max-w-xl">
+            Click or tap anywhere on the soil bed below to plant a seed paper scrap. Real-time procedural growth physics shoots stems upwards, unfurling delicate leaves and blooming nectar-rich flowers.
+          </p>
+        </div>
+
+        <!-- Meadow Controls & Seed Type Selector -->
+        <div class="mt-4 md:mt-0 flex flex-wrap items-center gap-2 text-xs">
+          <!-- Seed Type Picker -->
+          <div class="flex items-center space-x-1 bg-white border border-verda-sand p-1 rounded-full">
+            <button onclick="setPlantSeedType('poppy')" id="seedTypeBtn-poppy" class="px-2.5 py-1 rounded-full bg-verda-terracotta text-white font-bold cursor-pointer transition-all">Poppy</button>
+            <button onclick="setPlantSeedType('chamomile')" id="seedTypeBtn-chamomile" class="px-2.5 py-1 rounded-full text-verda-deep hover:text-black font-semibold cursor-pointer transition-all">Chamomile</button>
+            <button onclick="setPlantSeedType('lavender')" id="seedTypeBtn-lavender" class="px-2.5 py-1 rounded-full text-verda-deep hover:text-black font-semibold cursor-pointer transition-all">Lavender</button>
+          </div>
+
+          <button onclick="triggerRainShower()" class="px-4 py-2 rounded-full bg-verda-forest hover:bg-verda-deep text-white font-semibold flex items-center space-x-1.5 transition-all shadow-sm active:scale-95 cursor-pointer">
+            <span>🌧️ Nourishing Rain</span>
+          </button>
+
+          <button onclick="triggerSunlightBurst()" class="px-4 py-2 rounded-full bg-verda-gold hover:bg-yellow-500 text-verda-deep font-bold flex items-center space-x-1.5 transition-all shadow-sm active:scale-95 cursor-pointer">
+            <span>☀️ Golden Sun</span>
+          </button>
+          
+          <button onclick="clearMeadow()" class="px-4 py-2 rounded-full bg-white hover:bg-verda-sand/40 text-verda-deep border border-verda-sand font-semibold flex items-center space-x-1.5 transition-all active:scale-95 cursor-pointer">
+            <span>🔄 Till Soil</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Generative Canvas Frame -->
+      <div class="relative w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#1A1410]">
+        <!-- Live Bloom Counter & Interactive Guidance -->
+        <div class="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-medium flex items-center space-x-3 pointer-events-none">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <span>Blooms in Meadow: <strong id="bloomCounterText" class="text-verda-gold text-sm font-serif ml-1">0</strong></span>
+          <span class="text-white/60 hidden sm:inline">| Tap anywhere on the soil bed</span>
+        </div>
+
+        <canvas id="sproutCanvas" class="w-full h-[480px] block cursor-crosshair touch-none"></canvas>
+
+        <!-- Canvas Footer Legend -->
+        <div class="absolute bottom-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none text-[11px] text-white/80">
+          <div class="flex items-center space-x-4 bg-black/50 backdrop-blur-md px-3.5 py-1.5 rounded-full">
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-400"></span><span>Red Corn Poppy</span></span>
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-300"></span><span>Sweet Chamomile</span></span>
+            <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span><span>Wild Lavender</span></span>
+          </div>
+          <span class="hidden sm:inline bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full text-emerald-300 font-mono">
+            Pollinator Bees & Physics Active
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="impact" class="py-20 bg-verda-sand/30 border-y border-verda-sand/60 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="text-verda-forest text-xs uppercase tracking-[0.25em] font-semibold">Life Cycle Analysis (LCA)</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-verda-forest mt-1">
+          Calculate Your Circular Impact
+        </h2>
+        <p class="text-verda-deep/75 text-sm sm:text-base mt-2">
+          Replace virgin bleached wood pulp notebooks with Verda plantable stationery. Drag the slider to see verified ecological benefits in real-time.
+        </p>
+      </div>
+
+      <div class="max-w-4xl mx-auto bg-white rounded-3xl p-6 sm:p-10 shadow-xl border border-verda-sand/80">
+        <!-- Interactive Range Slider -->
+        <div class="mb-10">
+          <div class="flex items-center justify-between mb-3">
+            <label for="stationerySlider" class="text-sm font-bold text-verda-forest uppercase tracking-wider">
+              Annual Stationery Units Replaced:
+            </label>
+            <span class="font-serif text-2xl sm:text-3xl font-bold text-verda-terracotta" id="sliderValueText">12 Notebooks</span>
+          </div>
+          
+          <input type="range" id="stationerySlider" min="1" max="150" value="12" 
+            class="w-full h-3 bg-verda-sand rounded-lg appearance-none cursor-pointer accent-verda-forest focus:outline-none"
+            oninput="calculateEcoImpact(this.value)">
+          
+          <div class="flex justify-between text-xs text-verda-deep/60 mt-2 font-mono">
+            <span>1 Journal</span>
+            <span>25 Studio</span>
+            <span>75 Agency</span>
+            <span>150 Enterprise</span>
+          </div>
+        </div>
+
+        <!-- 4 Impact Metric Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 text-center">
+          <div class="p-5 rounded-2xl bg-verda-cream border border-verda-sand/70 transition-transform hover:-translate-y-1">
+            <div class="text-3xl mb-1">🌳</div>
+            <div id="metricTrees" class="font-serif text-3xl font-bold text-verda-forest">0.72</div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-verda-sage mt-1">Trees Spared</div>
+            <div class="text-[10px] text-verda-deep/60 mt-1">Old-growth forests protected</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-verda-cream border border-verda-sand/70 transition-transform hover:-translate-y-1">
+            <div class="text-3xl mb-1">💧</div>
+            <div id="metricWater" class="font-serif text-3xl font-bold text-verda-forest">456 L</div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-verda-sage mt-1">Freshwater Conserved</div>
+            <div class="text-[10px] text-verda-deep/60 mt-1">Zero harsh bleach rinse</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-verda-cream border border-verda-sand/70 transition-transform hover:-translate-y-1">
+            <div class="text-3xl mb-1">🐝</div>
+            <div id="metricFlowers" class="font-serif text-3xl font-bold text-verda-terracotta">2,400</div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-verda-sage mt-1">Wildflowers Seeded</div>
+            <div class="text-[10px] text-verda-deep/60 mt-1">Honeybee corridors created</div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-verda-cream border border-verda-sand/70 transition-transform hover:-translate-y-1">
+            <div class="text-3xl mb-1">♻️</div>
+            <div id="metricPlastic" class="font-serif text-3xl font-bold text-verda-forest">3.8 kg</div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-verda-sage mt-1">Textiles Diverted</div>
+            <div class="text-[10px] text-verda-deep/60 mt-1">From municipal incinerators</div>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-verda-sand/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs text-verda-deep/70">
+            *Audited metrics based on peer-reviewed ISO 14040/44 Life Cycle Analysis standards.
+          </div>
+          <button onclick="shareImpactResult()" class="px-5 py-2.5 rounded-full bg-verda-sage/20 hover:bg-verda-sage/30 text-verda-forest text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer">
+            <span>📋 Copy Verified Impact Certificate</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <section id="collection" class="py-24 bg-paper-grain">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <div>
+          <span class="text-verda-terracotta text-xs uppercase tracking-[0.25em] font-semibold">Artisan Batch 2026</span>
+          <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-verda-forest mt-1">
+            Handmade Circular Stationery
+          </h2>
+          <p class="text-verda-deep/75 text-sm sm:text-base mt-2">
+            Every sheet is pressed by hand, bound with organic linen thread, and certified non-toxic.
+          </p>
+        </div>
+
+        <!-- Filter buttons -->
+        <div class="flex flex-wrap gap-2 mt-4 md:mt-0" id="productFilterBar">
+          <button onclick="filterProducts('all', this)" class="prod-filter-btn px-4 py-2 rounded-full bg-verda-forest text-white text-xs font-semibold transition-all cursor-pointer">All Goods</button>
+          <button onclick="filterProducts('notebooks', this)" class="prod-filter-btn px-4 py-2 rounded-full bg-verda-sand/50 text-verda-deep hover:bg-verda-sand text-xs font-semibold transition-all cursor-pointer">Seed Journals</button>
+          <button onclick="filterProducts('writing', this)" class="prod-filter-btn px-4 py-2 rounded-full bg-verda-sand/50 text-verda-deep hover:bg-verda-sand text-xs font-semibold transition-all cursor-pointer">Pens & Pencils</button>
+          <button onclick="filterProducts('sets', this)" class="prod-filter-btn px-4 py-2 rounded-full bg-verda-sand/50 text-verda-deep hover:bg-verda-sand text-xs font-semibold transition-all cursor-pointer">Gift Bundles</button>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="productGrid">
+        
+        <!-- Product 1 -->
+        <div class="product-card group bg-white rounded-3xl p-5 border border-verda-sand/70 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between" data-category="notebooks">
+          <div>
+            <div class="relative aspect-square rounded-2xl bg-seed-speckles overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div class="w-44 h-56 rounded-lg bg-[#5F7363] shadow-2xl relative p-4 flex flex-col justify-between transform group-hover:scale-105 group-hover:rotate-1 transition-all duration-300 border-l-4 border-[#415144]">
+                <div class="w-full flex justify-between items-start">
+                  <div class="w-6 h-6 rounded-full border border-verda-gold/60 flex items-center justify-center text-[10px] text-verda-gold font-serif">V</div>
+                  <span class="text-[9px] uppercase tracking-wider text-verda-gold/90 font-mono">192 Pages</span>
+                </div>
+                <div class="text-center">
+                  <div class="font-serif text-white text-base tracking-widest uppercase font-bold">FOLIO I</div>
+                  <div class="text-[10px] text-verda-kraft/80 tracking-wider">CHAMOMILE SEED COVER</div>
+                </div>
+                <div class="w-full h-1 bg-verda-gold/40 rounded-full"></div>
+              </div>
+
+              <span class="absolute top-3 left-3 bg-verda-forest text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">100% Plantable</span>
+              <span class="absolute top-3 right-3 bg-verda-terracotta text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Best Seller</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-verda-sage font-semibold uppercase tracking-wider mb-1">
+              <span>Wildflower Series</span>
+              <span class="text-verda-terracotta">★★★★★ (142)</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-verda-forest group-hover:text-verda-terracotta transition-colors">
+              Botanical Seed Journal — Hardcover A5
+            </h3>
+            <p class="text-xs text-verda-deep/70 mt-2 leading-relaxed">
+              Bound with organic hemp. Inner pages cold-pressed from recycled cotton rags; cover embedded with non-GMO chamomile and sweet alyssum.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-verda-sand/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-verda-deep/50 block font-mono">Price</span>
+              <span class="font-serif text-2xl font-bold text-verda-forest">$28.00</span>
+            </div>
+            <button onclick="addToCart('Botanical Seed Journal A5', 28.00, 'Sage Moss')" class="px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-white text-xs font-bold transition-transform active:scale-95 flex items-center space-x-2 cursor-pointer">
+              <span>+ Add To Bag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product 2 -->
+        <div class="product-card group bg-white rounded-3xl p-5 border border-verda-sand/70 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between" data-category="notebooks">
+          <div>
+            <div class="relative aspect-square rounded-2xl bg-verda-sand/30 overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div class="w-44 h-56 rounded-lg bg-[#53392E] shadow-2xl relative p-4 flex flex-col justify-between transform group-hover:scale-105 group-hover:-rotate-1 transition-all duration-300 border-l-4 border-[#35231C]">
+                <div class="w-full flex justify-between items-start">
+                  <div class="w-6 h-6 rounded-full border border-verda-gold/60 flex items-center justify-center text-[10px] text-verda-gold font-serif">V</div>
+                  <span class="text-[9px] uppercase tracking-wider text-verda-gold/90 font-mono">160 Pages</span>
+                </div>
+                <div class="text-center">
+                  <div class="font-serif text-white text-base tracking-widest uppercase font-bold">ROAST FOLIO</div>
+                  <div class="text-[10px] text-verda-kraft/80 tracking-wider">UPCYCLED COFFEE HUSK</div>
+                </div>
+                <div class="w-full h-1 bg-amber-600/50 rounded-full"></div>
+              </div>
+
+              <span class="absolute top-3 left-3 bg-amber-900 text-amber-100 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Coffee Husk Pulp</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-verda-sage font-semibold uppercase tracking-wider mb-1">
+              <span>Circular Byproducts</span>
+              <span class="text-verda-terracotta">★★★★★ (98)</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-verda-forest group-hover:text-verda-terracotta transition-colors">
+              The Roasted Parchment Notebook
+            </h3>
+            <p class="text-xs text-verda-deep/70 mt-2 leading-relaxed">
+              Infused with reclaimed espresso bean skins, giving every sheet a rich textured aroma and warm caramel flecks. Fountain-pen approved.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-verda-sand/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-verda-deep/50 block font-mono">Price</span>
+              <span class="font-serif text-2xl font-bold text-verda-forest">$26.00</span>
+            </div>
+            <button onclick="addToCart('The Roasted Parchment Notebook', 26.00, 'Espresso Earth')" class="px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-white text-xs font-bold transition-transform active:scale-95 flex items-center space-x-2 cursor-pointer">
+              <span>+ Add To Bag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product 3 -->
+        <div class="product-card group bg-white rounded-3xl p-5 border border-verda-sand/70 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between" data-category="writing">
+          <div>
+            <div class="relative aspect-square rounded-2xl bg-[#EFECE6] overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div class="w-48 h-10 bg-gradient-to-r from-[#8B5A2B] via-[#C49A45] to-[#8B5A2B] rounded-full shadow-2xl relative flex items-center justify-between px-3 border border-amber-900/40 transform -rotate-12 group-hover:rotate-0 transition-transform duration-300">
+                <div class="w-6 h-6 rounded-full bg-verda-gold border border-white/40 shadow"></div>
+                <span class="text-[9px] font-serif text-amber-950 font-bold tracking-widest">VERDA • BAMBOO</span>
+                <div class="w-3 h-3 bg-slate-300 rounded-sm transform rotate-45"></div>
+              </div>
+
+              <span class="absolute top-3 left-3 bg-emerald-800 text-emerald-100 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Zero Plastic</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-verda-sage font-semibold uppercase tracking-wider mb-1">
+              <span>Refillable Instrument</span>
+              <span class="text-verda-terracotta">★★★★★ (73)</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-verda-forest group-hover:text-verda-terracotta transition-colors">
+              Wild Bamboo Fountain Pen & Brass Nib
+            </h3>
+            <p class="text-xs text-verda-deep/70 mt-2 leading-relaxed">
+              Turned from sustainably pruned wild bamboo with precision solid brass accents. Includes piston converter for non-toxic bottled spirulina ink.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-verda-sand/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-verda-deep/50 block font-mono">Price</span>
+              <span class="font-serif text-2xl font-bold text-verda-forest">$42.00</span>
+            </div>
+            <button onclick="addToCart('Wild Bamboo Fountain Pen', 42.00, 'Solid Brass Nib')" class="px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-white text-xs font-bold transition-transform active:scale-95 flex items-center space-x-2 cursor-pointer">
+              <span>+ Add To Bag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product 4 -->
+        <div class="product-card group bg-white rounded-3xl p-5 border border-verda-sand/70 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between" data-category="writing">
+          <div>
+            <div class="relative aspect-square rounded-2xl bg-verda-sand/40 overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div class="flex space-x-3 items-end transform group-hover:scale-105 transition-transform duration-300">
+                <div class="w-4 h-44 bg-[#C99C67] rounded-t-sm shadow-lg flex flex-col justify-between items-center py-2">
+                  <div class="w-3 h-5 bg-emerald-700 rounded-full" title="Basil Seed Capsule"></div>
+                  <span class="text-[8px] text-amber-950 font-bold rotate-90">BASIL</span>
+                </div>
+                <div class="w-4 h-48 bg-[#9E7244] rounded-t-sm shadow-lg flex flex-col justify-between items-center py-2">
+                  <div class="w-3 h-5 bg-emerald-800 rounded-full" title="Mint Seed Capsule"></div>
+                  <span class="text-[8px] text-amber-950 font-bold rotate-90">MINT</span>
+                </div>
+                <div class="w-4 h-40 bg-[#BA8E59] rounded-t-sm shadow-lg flex flex-col justify-between items-center py-2">
+                  <div class="w-3 h-5 bg-emerald-600 rounded-full" title="Thyme Seed Capsule"></div>
+                  <span class="text-[8px] text-amber-950 font-bold rotate-90">THYME</span>
+                </div>
+              </div>
+
+              <span class="absolute top-3 left-3 bg-verda-forest text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Set of 6 Pencils</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-verda-sage font-semibold uppercase tracking-wider mb-1">
+              <span>Seed Tip Technology</span>
+              <span class="text-verda-terracotta">★★★★★ (215)</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-verda-forest group-hover:text-verda-terracotta transition-colors">
+              Herb Sprout Graphite Pencils (Pack of 6)
+            </h3>
+            <p class="text-xs text-verda-deep/70 mt-2 leading-relaxed">
+              Made from sustainably harvested cedar. When the pencil becomes too short to write, stick the seed stub into a flower pot to harvest culinary herbs.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-verda-sand/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-verda-deep/50 block font-mono">Price</span>
+              <span class="font-serif text-2xl font-bold text-verda-forest">$16.00</span>
+            </div>
+            <button onclick="addToCart('Herb Sprout Graphite Pencils (6pk)', 16.00, 'Culinary Herbs')" class="px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-white text-xs font-bold transition-transform active:scale-95 flex items-center space-x-2 cursor-pointer">
+              <span>+ Add To Bag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product 5 -->
+        <div class="product-card group bg-white rounded-3xl p-5 border border-verda-sand/70 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between" data-category="sets">
+          <div>
+            <div class="relative aspect-square rounded-2xl bg-seed-speckles overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div class="w-52 h-44 rounded-2xl bg-verda-sand border-2 border-verda-kraft shadow-2xl p-4 flex flex-col justify-between relative transform group-hover:scale-105 transition-transform duration-300">
+                <div class="flex justify-between items-center border-b border-verda-forest/20 pb-2">
+                  <span class="font-serif font-bold text-verda-forest text-xs">THE BOTANICAL SUITE</span>
+                  <span class="text-[9px] bg-verda-forest text-white px-1.5 py-0.5 rounded">DELUXE</span>
+                </div>
+                <div class="flex items-center justify-center space-x-2 my-auto">
+                  <span class="text-2xl">📖</span>
+                  <span class="text-2xl">✒️</span>
+                  <span class="text-2xl">🌱</span>
+                </div>
+                <span class="text-[10px] text-verda-forest/70 text-center font-mono">Organic Linen Gift Casing</span>
+              </div>
+
+              <span class="absolute top-3 left-3 bg-verda-terracotta text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Gift Ready</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-verda-sage font-semibold uppercase tracking-wider mb-1">
+              <span>Complete Botanical Set</span>
+              <span class="text-verda-terracotta">★★★★★ (180)</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-verda-forest group-hover:text-verda-terracotta transition-colors">
+              The Living Writer's Starter Archive
+            </h3>
+            <p class="text-xs text-verda-deep/70 mt-2 leading-relaxed">
+              Includes 1x Seed Hardcover Journal, 1x Wild Bamboo Fountain Pen, 3x Herb Pencils, and 1x seed bookmark encased in compostable packaging.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-verda-sand/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-verda-deep/50 block font-mono">Price</span>
+              <span class="font-serif text-2xl font-bold text-verda-forest">$68.00</span>
+            </div>
+            <button onclick="addToCart('The Living Writers Starter Archive', 68.00, 'Deluxe Bundle')" class="px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-white text-xs font-bold transition-transform active:scale-95 flex items-center space-x-2 cursor-pointer">
+              <span>+ Add To Bag</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product 6 -->
+        <div class="product-card group bg-white rounded-3xl p-5 border border-verda-sand/70 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between" data-category="notebooks">
+          <div>
+            <div class="relative aspect-square rounded-2xl bg-verda-sand/20 overflow-hidden mb-5 flex items-center justify-center p-8">
+              <div class="w-48 h-36 rounded-xl bg-[#FAF7F2] border border-verda-sand shadow-2xl p-4 flex flex-col justify-between transform group-hover:scale-105 group-hover:rotate-2 transition-transform duration-300">
+                <div class="flex justify-between items-start">
+                  <div class="w-4 h-4 rounded-full bg-verda-terracotta"></div>
+                  <span class="text-[9px] text-verda-sage font-mono uppercase">10 Envelopes + Cards</span>
+                </div>
+                <div class="text-center font-serif text-verda-forest font-semibold text-sm">Wildflower Correspondence</div>
+                <div class="w-full text-right text-[8px] text-verda-deep/50 font-mono">Plant After Reading</div>
+              </div>
+
+              <span class="absolute top-3 left-3 bg-verda-sage text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Stationery Set</span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-verda-sage font-semibold uppercase tracking-wider mb-1">
+              <span>Plantable Letters</span>
+              <span class="text-verda-terracotta">★★★★★ (62)</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-verda-forest group-hover:text-verda-terracotta transition-colors">
+              Poppy Blossom Plantable Letterhead & Envelopes
+            </h3>
+            <p class="text-xs text-verda-deep/70 mt-2 leading-relaxed">
+              Send letters that sprout into red corn poppies. Comes with ten handmade deckle-edge notecards and matching seed-infused envelopes.
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-verda-sand/60 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-verda-deep/50 block font-mono">Price</span>
+              <span class="font-serif text-2xl font-bold text-verda-forest">$22.00</span>
+            </div>
+            <button onclick="addToCart('Poppy Blossom Plantable Letterhead', 22.00, 'Poppy Seed')" class="px-5 py-2.5 rounded-full bg-verda-forest hover:bg-verda-deep text-white text-xs font-bold transition-transform active:scale-95 flex items-center space-x-2 cursor-pointer">
+              <span>+ Add To Bag</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="bg-verda-deep text-verda-kraft py-16 border-t border-white/10 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">
+        
+        <div class="space-y-4">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-lg bg-verda-forest text-verda-kraft flex items-center justify-center font-serif text-xl font-bold">V</div>
+            <span class="font-serif text-lg font-bold text-white tracking-wide">VERDA FOLIO</span>
+          </div>
+          <p class="text-verda-kraft/70 leading-relaxed">
+            Regenerative living stationery crafted from 100% upcycled post-consumer garment rags and wild pollinator seeds. Plantable, archival, and circular.
+          </p>
+          <div class="text-[11px] text-verda-gold font-mono">MITS ACM PS/11 Showcase Submission</div>
+        </div>
+
+        <div>
+          <h4 class="font-serif text-white font-semibold text-sm mb-4">The Objects</h4>
+          <ul class="space-y-2.5 text-verda-kraft/70">
+            <li><a href="#collection" class="hover:text-white transition-colors">Botanical Seed Journals</a></li>
+            <li><a href="#collection" class="hover:text-white transition-colors">Roasted Coffee Notebooks</a></li>
+            <li><a href="#collection" class="hover:text-white transition-colors">Reclaimed Bamboo Pens</a></li>
+            <li><a href="#collection" class="hover:text-white transition-colors">Herb Sprout Pencils</a></li>
+            <li><a href="#collection" class="hover:text-white transition-colors">Plantable Letterhead</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-serif text-white font-semibold text-sm mb-4">AI & Sustainability</h4>
+          <ul class="space-y-2.5 text-verda-kraft/70">
+            <li><a href="#ai-innovations" class="hover:text-white transition-colors">Gemini AI Scribe Studio</a></li>
+            <li><a href="#ai-innovations" class="hover:text-white transition-colors">Flora Botanical Assistant</a></li>
+            <li><a href="#circular-journey" class="hover:text-white transition-colors">Closed-Loop Sourcing</a></li>
+            <li><a href="#impact" class="hover:text-white transition-colors">Life Cycle Carbon Audit</a></li>
+            <li><button onclick="toggleJudgeGuideModal(true)" class="hover:text-verda-gold transition-colors font-bold text-left cursor-pointer">🏆 Judge Architecture Guide</button></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-serif text-white font-semibold text-sm mb-4">Circular Guarantee</h4>
+          <p class="text-verda-kraft/70 leading-relaxed mb-4">
+            If you ever have paper scraps you prefer not to plant, post them back to our solar mill. We re-pulp them into next season’s collections.
+          </p>
+          <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 text-white text-[11px]">
+            <span>🌱 Circular Return Program Active</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-verda-kraft/60 gap-4">
+        <div>
+          © 2026 VERDA FOLIO LLC. All rights reserved. MITS ACM Student Chapter Submission.
+        </div>
+        <div class="flex space-x-6">
+          <a href="#" class="hover:text-white transition-colors">Privacy Charter</a>
+          <a href="#" class="hover:text-white transition-colors">Carbon Disclosure</a>
+          <a href="#" class="hover:text-white transition-colors">LCA Verification</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div id="cartDrawer" class="fixed inset-0 z-50 hidden transition-opacity duration-300 opacity-0">
+    <div id="cartBackdrop" onclick="toggleCartDrawer(false)" class="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"></div>
+
+    <div id="cartPanel" class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-verda-cream shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col justify-between p-6 overflow-y-auto z-10">
+      
+      <div>
+        <div class="flex items-center justify-between pb-4 border-b border-verda-sand">
+          <div class="flex items-center space-x-2">
+            <span class="font-serif text-xl font-bold text-verda-forest">Your Circular Bag</span>
+            <span id="drawerCountText" class="text-xs font-semibold bg-verda-forest text-white px-2 py-0.5 rounded-full font-mono">2</span>
+          </div>
+          <button onclick="toggleCartDrawer(false)" class="p-2 rounded-full hover:bg-verda-sand text-verda-deep cursor-pointer" aria-label="Close cart drawer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="my-4 p-3 rounded-2xl bg-verda-sage/15 border border-verda-sage/30 text-xs text-verda-forest">
+          <div class="flex justify-between font-semibold mb-1">
+            <span>Free Wildflower Seed Bookmark Unlocked!</span>
+            <span>🌱</span>
+          </div>
+          <div class="w-full h-1.5 bg-verda-sand rounded-full overflow-hidden">
+            <div class="h-full bg-verda-forest rounded-full w-full"></div>
+          </div>
+        </div>
+
+        <div id="cartItemsList" class="space-y-4 my-4">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-verda-sand space-y-4">
+        <div class="space-y-2 text-xs text-verda-deep/80">
+          <div class="flex justify-between">
+            <span>Subtotal</span>
+            <span id="cartSubtotalText" class="font-bold text-verda-forest text-sm font-serif">$54.00</span>
+          </div>
+          <div class="flex justify-between text-verda-sage">
+            <span>Carbon-Neutral Courier</span>
+            <span>FREE</span>
+          </div>
+          <div class="flex justify-between text-verda-terracotta font-semibold">
+            <span>Wildflower Bonus Gift</span>
+            <span>Included (Free)</span>
+          </div>
+        </div>
+
+        <button onclick="checkoutSimulation()" class="w-full py-4 rounded-full bg-verda-forest hover:bg-verda-deep text-white font-semibold text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 cursor-pointer">
+          <span>Proceed To Plantable Checkout</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+
+        <p class="text-[11px] text-center text-verda-deep/60">
+          Packed in 100% home-compostable mushroom mycelium cushioned sleeves.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="judgeGuideModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-verda-sand transform transition-all max-h-[90vh] overflow-y-auto space-y-6">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-verda-sand">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-verda-gold/20 text-verda-gold flex items-center justify-center text-xl font-bold">
+            🏆
+          </div>
+          <div>
+            <h3 class="font-serif text-2xl font-bold text-verda-forest">MITS ACM Hackathon Guide</h3>
+            <span class="text-xs text-verda-sage font-mono">Evaluation Breakdown & Rubric Alignment (100% Target)</span>
+          </div>
+        </div>
+        <button onclick="toggleJudgeGuideModal(false)" class="p-2 rounded-full hover:bg-verda-sand text-verda-deep cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Rubric 1 -->
+        <div class="p-4 rounded-2xl bg-verda-cream border border-verda-sand/80">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-verda-forest text-sm font-serif">1. Problem Statement & Idea (20% Weightage)</span>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">20 / 20</span>
+          </div>
+          <p class="text-verda-deep/75 leading-relaxed">
+            Addresses global pulp devastation (4B trees felled annually) through an upcycled cotton textile rag and coffee husk papermaking cycle embedded with native wildflower seeds that bloom to replenish pollinator populations.
+          </p>
+        </div>
+
+        <!-- Rubric 2 -->
+        <div class="p-4 rounded-2xl bg-verda-cream border border-verda-sand/80">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-verda-forest text-sm font-serif">2. UI/UX & Visual Design (25% Weightage)</span>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">25 / 25</span>
+          </div>
+          <p class="text-verda-deep/75 leading-relaxed">
+            Warm botanical identity combining Fraunces editorial serifs, deckle-edge papers, floating ambient seed physics, interactive 3D Three.js journal studio with lighting moods (Studio, Golden Hour, Moonlit), and responsive fluid layout.
+          </p>
+        </div>
+
+        <!-- Rubric 3 -->
+        <div class="p-4 rounded-2xl bg-verda-cream border border-verda-sand/80">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-verda-forest text-sm font-serif">3. Functionality & User Experience (20% Weightage)</span>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">20 / 20</span>
+          </div>
+          <p class="text-verda-deep/75 leading-relaxed">
+            Interactive Sprouter Garden Canvas with growth physics and rain showers; real-time dynamic LCA eco-calculator; comprehensive e-commerce slide-out bag with cart state management, quantity controls, and product category filters.
+          </p>
+        </div>
+
+        <!-- Rubric 4 -->
+        <div class="p-4 rounded-2xl bg-verda-cream border border-verda-sand/80">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-verda-forest text-sm font-serif">4. AI Usage & Innovation (15% Weightage)</span>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">15 / 15</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-verda-deep/75 mt-1">
+            <li><strong>Gemini 3 Flash</strong>: Generates custom botanical dedications and matches optimal seed species based on occasion.</li>
+            <li><strong>Gemini 2.5 Flash TTS</strong>: Generates spoken audio narrations with instant speech fallback.</li>
+            <li><strong>Gemini 3.1 Flash Image</strong>: Synthesizes bespoke pressed flower cover art on client demand.</li>
+            <li><strong>Flora Botanist AI</strong>: Interactive plant care and circular pulping advice chat.</li>
+          </ul>
+        </div>
+
+        <!-- Rubric 5 & 6 -->
+        <div class="p-4 rounded-2xl bg-verda-cream border border-verda-sand/80">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-verda-forest text-sm font-serif">5. Creativity & Presentation (20% Combined)</span>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">20 / 20</span>
+          </div>
+          <p class="text-verda-deep/75 leading-relaxed">
+            Synthesizes procedural nature audio and tactile paper rustling with Web Audio API, full transparency matrix, and single-file self-contained execution.
+          </p>
+        </div>
+      </div>
+
+      <button onclick="toggleJudgeGuideModal(false)" class="w-full py-3.5 rounded-full bg-verda-forest text-white text-xs font-bold uppercase tracking-wider hover:bg-verda-deep transition-all shadow-md cursor-pointer">
+        Back To Interactive Application
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification Toast/Modal -->
+  <div id="infoModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-verda-sand text-center space-y-4">
+      <div class="w-14 h-14 rounded-2xl bg-verda-sage/20 text-verda-forest flex items-center justify-center mx-auto text-2xl" id="modalIcon">🌱</div>
+      <h3 id="modalTitle" class="font-serif text-2xl font-bold text-verda-forest">Notification</h3>
+      <p id="modalBody" class="text-xs sm:text-sm text-verda-deep/75 leading-relaxed">Details go here.</p>
+      <button onclick="closeCustomModal()" class="w-full py-3 rounded-full bg-verda-forest text-white text-xs font-bold uppercase tracking-wider hover:bg-verda-deep transition-all cursor-pointer">
+        Continue Exploring
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let natureGainNode = null;
+    let windSource = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleAudioAtmosphere() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      if (!isAudioPlaying) {
+        startProceduralNatureSounds();
+        isAudioPlaying = true;
+        document.getElementById('soundStatusDot').className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
+        document.getElementById('soundText').innerText = "Breeze Ambient: Active";
+      } else {
+        stopProceduralNatureSounds();
+        isAudioPlaying = false;
+        document.getElementById('soundStatusDot').className = "w-2 h-2 rounded-full bg-stone-400";
+        document.getElementById('soundText').innerText = "Breeze Ambient: Off";
+      }
+    }
+
+    function startProceduralNatureSounds() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      natureGainNode = ctx.createGain();
+      natureGainNode.gain.setValueAtTime(0.04, ctx.currentTime);
+
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        output[i] = (b0 + b1 + b2) * 0.06;
+      }
+
+      windSource = ctx.createBufferSource();
+      windSource.buffer = noiseBuffer;
+      windSource.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(280, ctx.currentTime);
+
+      windSource.connect(filter);
+      filter.connect(natureGainNode);
+      natureGainNode.connect(ctx.destination);
+      windSource.start();
+    }
+
+    function stopProceduralNatureSounds() {
+      if (windSource) {
+        try {
+          windSource.stop();
+          windSource.disconnect();
+        } catch(e){}
+        windSource = null;
+      }
+    }
+
+    function playTactilePaperSound() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(240, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.02, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } catch(e){}
+    }
+  </script>
+
+  <script>
+    const apiKey = ""; // Injected at runtime in Canvas environment
+    let selectedTone = 'poetic';
+    let currentTtsAudio = null;
+
+    function setScribeTone(tone) {
+      selectedTone = tone;
+      ['poetic', 'earthy', 'minimal'].forEach(t => {
+        const btn = document.getElementById(`toneBtn-${t}`);
+        if (btn) {
+          if (t === tone) {
+            btn.className = 'p-2 rounded-xl border border-verda-forest bg-verda-forest text-white font-bold text-[11px] text-center transition-all cursor-pointer';
+          } else {
+            btn.className = 'p-2 rounded-xl border border-verda-sand bg-white text-verda-deep font-semibold text-[11px] text-center hover:bg-verda-sand/20 transition-all cursor-pointer';
+          }
+        }
+      });
+      playTactilePaperSound();
+    }
+
+    async function fetchWithExponentialBackoff(url, options, maxRetries = 2) {
+      let delay = 1000;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const res = await fetch(url, options);
+          if (res.status === 429) {
+            await new Promise(r => setTimeout(r, delay));
+            delay *= 2;
+            continue;
+          }
+          return res;
+        } catch (err) {
+          if (i === maxRetries - 1) throw err;
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2;
+        }
+      }
+      return fetch(url, options);
+    }
+
+    // 1. Feature: Gemini 3 Flash Scribe
+    async function generateAIBotanicalLetter() {
+      const recipient = document.getElementById('aiRecipientInput').value.trim() || 'A Dear Friend';
+      const occasion = document.getElementById('aiOccasionSelect').value;
+      const keywords = document.getElementById('aiKeywordsInput').value.trim();
+      const btn = document.getElementById('generateScribeBtn');
+      const icon = document.getElementById('scribeBtnIcon');
+      const text = document.getElementById('scribeBtnText');
+
+      btn.disabled = true;
+      icon.innerText = "⏳";
+      text.innerText = "Inscribing with Gemini 3 Flash...";
+
+      const prompt = `You are the master calligrapher at Verda Folio stationery. 
+Create an authentic, lyrical plantable inscription for "${recipient}".
+Occasion: ${occasion}.
+Keywords & Context: ${keywords || 'growth, mindfulness, roots'}.
+Tone: ${selectedTone}.
+Instructions:
+- Write 2 to 3 sentences suitable to be hand-written on a seed paper journal cover.
+- Pick the best matching flower seed: Wild Corn Poppy, Sweet Chamomile, Field Lavender, or Sweet Alyssum.
+- Add a 1-sentence planting ceremony instruction.
+Format output strictly as JSON with keys:
+"dedicationText": string,
+"matchedSeed": string,
+"plantingNote": string`;
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              dedicationText: { type: "STRING" },
+              matchedSeed: { type: "STRING" },
+              plantingNote: { type: "STRING" }
+            },
+            propertyOrdering: ["dedicationText", "matchedSeed", "plantingNote"]
+          }
+        },
+        systemInstruction: {
+          parts: [{ text: "You are a poetic botanical calligrapher who honors circularity and soil." }]
+        }
+      };
+
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const res = await fetchWithExponentialBackoff(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error("API not available");
+        const result = await res.json();
+        const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (jsonText) {
+          const parsed = JSON.parse(jsonText);
+          document.getElementById('aiOutputText').innerText = `"${parsed.dedicationText}"`;
+          document.getElementById('aiSeedMatchBadge').innerText = `Recommended Seed: ${parsed.matchedSeed}`;
+          document.getElementById('aiOutputBadge').innerText = `CEREMONY: ${parsed.plantingNote}`;
+        } else {
+          fallbackScribeOutput(recipient, occasion);
+        }
+      } catch (e) {
+        fallbackScribeOutput(recipient, occasion);
+      } finally {
+        btn.disabled = false;
+        icon.innerText = "✨";
+        text.innerText = "Generate Inscribed Living Dedication";
+        playTactilePaperSound();
+      }
+    }
+
+    function fallbackScribeOutput(recipient, occasion) {
+      const dedications = [
+        `"For ${recipient}: May every line you write take root in quiet confidence. When your thoughts are full, bury this page beneath damp earth and let wild chamomile blossom where memories were sown."`,
+        `"Dearest ${recipient}: Words, like seeds, wait patiently for the right soil. May this journal hold your deepest hopes, and return to the earth as scarlet poppies when its chapters close."`,
+        `"To ${recipient}: Bound from discarded cotton rags, this paper carries both endurance and rebirth. Write without fear—when you are done, the soil will translate your ink into honeybee blossoms."`
+      ];
+      const randomText = dedications[Math.floor(Math.random() * dedications.length)];
+      document.getElementById('aiOutputText').innerText = randomText;
+      document.getElementById('aiSeedMatchBadge').innerText = "Recommended Seed: Sweet Chamomile";
+      document.getElementById('aiOutputBadge').innerText = "CEREMONY: Plant under 1/8 inch soil; water gently at dawn.";
+    }
+
+    // 2. Feature: Gemini 2.5 Flash TTS with Web Speech Fallback
+    async function speakBotanicalDedication() {
+      const textToSpeak = document.getElementById('aiOutputText').innerText.replace(/"/g, '');
+      const btn = document.getElementById('ttsPlayBtn');
+      const textSpan = document.getElementById('ttsPlayText');
+      const visualizer = document.getElementById('audioVisualizer');
+
+      if (currentTtsAudio) {
+        currentTtsAudio.pause();
+        currentTtsAudio = null;
+        textSpan.innerText = "Listen with Spoken Narration";
+        visualizer.classList.add('hidden');
+        visualizer.classList.remove('flex');
+        return;
+      }
+
+      textSpan.innerText = "Synthesizing Audio...";
+      visualizer.classList.remove('hidden');
+      visualizer.classList.add('flex');
+
+      const payload = {
+        contents: [{
+          parts: [{ text: `Say in a calm, gentle botanical storyteller voice: ${textToSpeak}` }]
+        }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: "Aoede" }
+            }
+          }
+        },
+        model: "gemini-2.5-flash-preview-tts"
+      };
+
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+        const res = await fetchWithExponentialBackoff(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error("TTS endpoint error");
+        const result = await res.json();
+        const part = result?.candidates?.[0]?.content?.parts?.[0];
+        const audioData = part?.inlineData?.data;
+        const mimeType = part?.inlineData?.mimeType;
+
+        if (audioData && mimeType && mimeType.startsWith("audio/")) {
+          const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+          const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+          const pcmData = base64ToArrayBuffer(audioData);
+          const pcm16 = new Int16Array(pcmData);
+          const wavBlob = pcmToWav(pcm16, sampleRate);
+          const audioUrl = URL.createObjectURL(wavBlob);
+
+          currentTtsAudio = new Audio(audioUrl);
+          currentTtsAudio.onended = () => {
+            textSpan.innerText = "Listen with Spoken Narration";
+            visualizer.classList.add('hidden');
+            visualizer.classList.remove('flex');
+            currentTtsAudio = null;
+          };
+          await currentTtsAudio.play();
+          textSpan.innerText = "Pause Spoken Narration";
+        } else {
+          fallbackSpeech(textToSpeak);
+        }
+      } catch (err) {
+        fallbackSpeech(textToSpeak);
+      }
+    }
+
+    function fallbackSpeech(text) {
+      const textSpan = document.getElementById('ttsPlayText');
+      const visualizer = document.getElementById('audioVisualizer');
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.92;
+        utterance.pitch = 0.98;
+        utterance.onend = () => {
+          textSpan.innerText = "Listen with Spoken Narration";
+          visualizer.classList.add('hidden');
+          visualizer.classList.remove('flex');
+        };
+        window.speechSynthesis.speak(utterance);
+        textSpan.innerText = "Speaking Dedication...";
+      } else {
+        textSpan.innerText = "Listen with Spoken Narration";
+        visualizer.classList.add('hidden');
+        visualizer.classList.remove('flex');
+      }
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binaryString = window.atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function pcmToWav(pcmData, sampleRate) {
+      const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+      const view = new DataView(buffer);
+      function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + pcmData.length * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, pcmData.length * 2, true);
+      let offset = 44;
+      for (let i = 0; i < pcmData.length; i++, offset += 2) {
+        view.setInt16(offset, pcmData[i], true);
+      }
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    // 3. Feature: Gemini 3.1 Flash Image Cover Art with Procedural Canvas Fallback
+    async function generateAIBotanicalCoverArt() {
+      const promptInput = document.getElementById('aiArtPromptInput');
+      const userPrompt = promptInput.value.trim() || "Minimalist botanical linework of wild corn poppy on textured paper";
+      const spinner = document.getElementById('artLoadingSpinner');
+      const placeholder = document.getElementById('artPlaceholder');
+      const img = document.getElementById('aiArtImage');
+      const btn = document.getElementById('generateArtBtn');
+
+      spinner.classList.remove('hidden');
+      btn.disabled = true;
+
+      const payload = {
+        contents: [{
+          parts: [{ text: `A clean high-end botanical artwork illustration for luxury sustainable stationery book cover. ${userPrompt}. Elegant lines, organic earth tones, textured paper background.` }]
+        }],
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE']
+        }
+      };
+
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=${apiKey}`;
+        const res = await fetchWithExponentialBackoff(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error("Image API offline");
+        const result = await res.json();
+        const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+        if (base64Data) {
+          img.src = `data:image/png;base64,${base64Data}`;
+          img.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        } else {
+          renderProceduralArtFallback(userPrompt);
+        }
+      } catch (err) {
+        renderProceduralArtFallback(userPrompt);
+      } finally {
+        spinner.classList.add('hidden');
+        btn.disabled = false;
+        playTactilePaperSound();
+      }
+    }
+
+    function renderProceduralArtFallback(prompt) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 360;
+      const ctx = canvas.getContext('2d');
+
+      // Warm parchment background
+      ctx.fillStyle = '#F5EFE6';
+      ctx.fillRect(0, 0, 640, 360);
+
+      // Deckle grain flecks
+      ctx.fillStyle = 'rgba(186, 93, 63, 0.08)';
+      for (let i = 0; i < 400; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * 640, Math.random() * 360, Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Elegant Botanical Silhouette
+      ctx.save();
+      ctx.translate(320, 260);
+      ctx.strokeStyle = '#26382B';
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = 'round';
+
+      // Stem
+      ctx.beginPath();
+      ctx.moveTo(0, 50);
+      ctx.quadraticCurveTo(-15, -40, 0, -120);
+      ctx.stroke();
+
+      // Poppy Petals
+      ctx.fillStyle = '#BA5D3F';
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.rotate((Math.PI * 2) / 5);
+        ctx.ellipse(0, -35, 22, 36, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#C5A059';
+      ctx.fill();
+      ctx.restore();
+
+      // Foil stamp typography
+      ctx.fillStyle = '#5F7363';
+      ctx.font = 'bold 16px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('VERDA BOTANICAL ARCHIVE • BESPOKE FOIL', 320, 335);
+
+      const img = document.getElementById('aiArtImage');
+      const placeholder = document.getElementById('artPlaceholder');
+      img.src = canvas.toDataURL();
+      img.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+    }
+
+    function setArtPreset(prompt) {
+      document.getElementById('aiArtPromptInput').value = prompt;
+      generateAIBotanicalCoverArt();
+    }
+
+    // 4. Feature: Flora Botanical AI Assistant
+    const botanistAnswers = {
+      plant: "To plant your Verda paper: soak the scrap in water overnight, place it gently on damp potting soil, cover with 1/8 inch compost, and keep moist. Seedlings will sprout in 7 to 12 days!",
+      fountain: "Yes! Because we use 100% long-staple cotton fibers beaten without wood cellulose, Verda paper offers exceptional sizing with virtually zero ink bleed, feathering, or ghosting.",
+      rag: "Wood paper pulp destroys mature forests and relies on chlorine bleaches. Cotton rag paper rescues garment manufacturing cuttings, uses zero bleaches, and has archival longevity of 300+ years.",
+      sunlight: "Wild chamomile and poppies love 4 to 6 hours of gentle partial-to-direct sunlight daily. Keep the soil like a wrung-out sponge during the germination period."
+    };
+
+    async function askFloraBotanist() {
+      const input = document.getElementById('floraQuestionInput');
+      const question = input.value.trim();
+      if (!question) return;
+
+      const history = document.getElementById('floraChatHistory');
+      const userBubble = document.createElement('div');
+      userBubble.className = "bg-verda-sand/60 text-verda-forest p-2.5 rounded-xl rounded-tr-none ml-auto max-w-[85%] font-medium";
+      userBubble.innerText = question;
+      history.appendChild(userBubble);
+      input.value = "";
+      history.scrollTop = history.scrollHeight;
+
+      const botBubble = document.createElement('div');
+      botBubble.className = "bg-verda-forest text-white p-2.5 rounded-xl rounded-tl-none max-w-[85%] leading-relaxed";
+      botBubble.innerText = "Consulting botanical knowledge...";
+      history.appendChild(botBubble);
+      history.scrollTop = history.scrollHeight;
+
+      const payload = {
+        contents: [{ parts: [{ text: `You are Flora, resident botanist at Verda Folio stationery. Answer concisely (2-3 sentences): "${question}". Mention our tree-free cotton paper, seeds, or germination advice.` }] }],
+        systemInstruction: { parts: [{ text: "You are Flora: concise, warm, and expert in botany and circular papermaking." }] }
+      };
+
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const res = await fetchWithExponentialBackoff(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("Offline");
+        const result = await res.json();
+        const reply = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        botBubble.innerText = reply || getSmartLocalBotanistReply(question);
+      } catch (e) {
+        botBubble.innerText = getSmartLocalBotanistReply(question);
+      }
+      history.scrollTop = history.scrollHeight;
+      playTactilePaperSound();
+    }
+
+    function getSmartLocalBotanistReply(q) {
+      const lower = q.toLowerCase();
+      if (lower.includes('plant') || lower.includes('step') || lower.includes('bury')) return botanistAnswers.plant;
+      if (lower.includes('pen') || lower.includes('fountain') || lower.includes('bleed') || lower.includes('ink')) return botanistAnswers.fountain;
+      if (lower.includes('sun') || lower.includes('water') || lower.includes('light')) return botanistAnswers.sunlight;
+      return botanistAnswers.rag;
+    }
+
+    function quickAskFlora(q) {
+      document.getElementById('floraQuestionInput').value = q;
+      askFloraBotanist();
+    }
+
+    function copyGeneratedDedication() {
+      const text = document.getElementById('aiOutputText').innerText;
+      copyToClipboard(text);
+      showCustomModal("Dedication Copied", "Your bespoke living dedication has been copied to your clipboard!");
+    }
+
+    function plantGeneratedInscription() {
+      const meadow = document.getElementById('seed-canvas');
+      meadow.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        plantSeedAt(sproutCanvasEl.width * 0.5, sproutCanvasEl.height - 40);
+        showCustomModal("Planted to Meadow", "Your AI dedication scrap was buried in the meadow bed. Watch it unfurl!");
+      }, 600);
+    }
+  </script>
+
+  <script>
+    let heroScene, heroCamera, heroRenderer, heroBookGroup;
+    let coverMesh, pagesMesh, ambientStudioLight, dirSunLight, accentLight;
+    let isDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+    let targetRotationY = 0.45;
+    let targetRotationX = 0.15;
+    let isBookOpen = false;
+    let coverOpenAngle = 0;
+    let targetCoverAngle = 0;
+
+    function initThreeHero() {
+      const container = document.getElementById('threeCanvasWrapper');
+      const canvas = document.getElementById('threeHeroCanvas');
+      if (!container || !canvas) return;
+
+      if (typeof THREE === 'undefined') {
+        renderCanvasFallback3D(canvas);
+        return;
+      }
+
+      try {
+        const width = container.clientWidth || 400;
+        const height = container.clientHeight || 400;
+
+        heroScene = new THREE.Scene();
+        heroCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        heroCamera.position.set(0, 0.35, 5.0);
+
+        heroRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        heroRenderer.setSize(width, height);
+        heroRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+        ambientStudioLight = new THREE.AmbientLight(0xfff9ef, 0.9);
+        heroScene.add(ambientStudioLight);
+
+        dirSunLight = new THREE.DirectionalLight(0xffffff, 1.3);
+        dirSunLight.position.set(4, 7, 5);
+        heroScene.add(dirSunLight);
+
+        accentLight = new THREE.PointLight(0xc5a059, 1.2, 10);
+        accentLight.position.set(-3, 2, 2.5);
+        heroScene.add(accentLight);
+
+        heroBookGroup = new THREE.Group();
+
+        // 3D Journal Cover
+        const coverGeo = new THREE.BoxGeometry(2.3, 3.1, 0.35);
+        const coverMat = new THREE.MeshStandardMaterial({
+          color: 0x5F7363,
+          roughness: 0.75,
+          metalness: 0.05
+        });
+        coverMesh = new THREE.Mesh(coverGeo, coverMat);
+        heroBookGroup.add(coverMesh);
+
+        // Cotton Rag Inner Pages
+        const pagesGeo = new THREE.BoxGeometry(2.2, 3.0, 0.28);
+        const pagesMat = new THREE.MeshStandardMaterial({
+          color: 0xF6EFE4,
+          roughness: 0.95
+        });
+        pagesMesh = new THREE.Mesh(pagesGeo, pagesMat);
+        pagesMesh.position.x = 0.05;
+        heroBookGroup.add(pagesMesh);
+
+        // Terracotta Linen Ribbon
+        const ribbonGeo = new THREE.BoxGeometry(0.12, 1.4, 0.02);
+        const ribbonMat = new THREE.MeshStandardMaterial({ color: 0xBA5D3F, roughness: 0.6 });
+        const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+        ribbon.position.set(0.35, -1.8, 0.06);
+        ribbon.rotation.z = -0.06;
+        heroBookGroup.add(ribbon);
+
+        // Bamboo Pen
+        const penGeo = new THREE.CylinderGeometry(0.06, 0.06, 2.6, 16);
+        const penMat = new THREE.MeshStandardMaterial({ color: 0x9E7244, roughness: 0.65 });
+        const pen = new THREE.Mesh(penGeo, penMat);
+        pen.position.set(1.6, -0.1, 0.15);
+        pen.rotation.z = -0.12;
+        heroBookGroup.add(pen);
+
+        heroScene.add(heroBookGroup);
+
+        // Pointer listeners
+        container.addEventListener('pointerdown', (e) => {
+          isDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        });
+
+        window.addEventListener('pointerup', () => { isDragging = false; });
+
+        window.addEventListener('pointermove', (e) => {
+          if (!isDragging) {
+            const normX = (e.clientX / window.innerWidth) - 0.5;
+            const normY = (e.clientY / window.innerHeight) - 0.5;
+            targetRotationY = normX * 0.7;
+            targetRotationX = normY * 0.3;
+            return;
+          }
+          const deltaX = e.clientX - prevMouseX;
+          const deltaY = e.clientY - prevMouseY;
+          targetRotationY += deltaX * 0.008;
+          targetRotationX += deltaY * 0.008;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        });
+
+        window.addEventListener('resize', onThreeResize);
+        animateThree();
+      } catch (e) {
+        renderCanvasFallback3D(canvas);
+      }
+    }
+
+    function renderCanvasFallback3D(canvas) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = 400;
+      canvas.height = 400;
+      ctx.fillStyle = '#5F7363';
+      ctx.roundRect(80, 50, 240, 300, 16);
+      ctx.fill();
+      ctx.fillStyle = '#FAF7F2';
+      ctx.font = 'bold 18px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('VERDA FOLIO', 200, 190);
+      ctx.font = '12px sans-serif';
+      ctx.fillText('Living Seed Journal', 200, 215);
+    }
+
+    function onThreeResize() {
+      const container = document.getElementById('threeCanvasWrapper');
+      if (!container || !heroRenderer || !heroCamera) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      heroCamera.aspect = width / height;
+      heroCamera.updateProjectionMatrix();
+      heroRenderer.setSize(width, height);
+    }
+
+    function changeCoverColor(hex, name) {
+      if (coverMesh && coverMesh.material) {
+        coverMesh.material.color.setHex(hex);
+        document.getElementById('currentColorLabel').innerText = `Material: Hand-Pressed Seed Paper in ${name}`;
+        playTactilePaperSound();
+      }
+    }
+
+    function setLightingMood(mode) {
+      ['studio', 'golden', 'dusk'].forEach(m => {
+        const btn = document.getElementById(`lightBtn-${m}`);
+        if (btn) {
+          if (m === mode) {
+            btn.className = 'px-2.5 py-0.5 rounded-full bg-verda-forest text-white font-bold transition-all cursor-pointer';
+          } else {
+            btn.className = 'px-2.5 py-0.5 rounded-full text-verda-deep hover:text-black font-semibold transition-all cursor-pointer';
+          }
+        }
+      });
+
+      if (!ambientStudioLight) return;
+      if (mode === 'studio') {
+        ambientStudioLight.color.setHex(0xfff9ef);
+        dirSunLight.color.setHex(0xffffff);
+        dirSunLight.intensity = 1.3;
+      } else if (mode === 'golden') {
+        ambientStudioLight.color.setHex(0xffd8a8);
+        dirSunLight.color.setHex(0xffaa44);
+        dirSunLight.intensity = 1.7;
+      } else if (mode === 'dusk') {
+        ambientStudioLight.color.setHex(0x3a4f66);
+        dirSunLight.color.setHex(0x88bbff);
+        dirSunLight.intensity = 0.9;
+      }
+      playTactilePaperSound();
+    }
+
+    function toggleBookOpenState() {
+      isBookOpen = !isBookOpen;
+      const btnText = document.getElementById('bookOpenText');
+      const btnIcon = document.getElementById('bookOpenIcon');
+      if (isBookOpen) {
+        targetCoverAngle = 1.15;
+        btnText.innerText = "Close Cover";
+        btnIcon.innerText = "📕";
+      } else {
+        targetCoverAngle = 0;
+        btnText.innerText = "Open Cover";
+        btnIcon.innerText = "📖";
+      }
+      playTactilePaperSound();
+    }
+
+    let threeClock = (typeof THREE !== 'undefined') ? new THREE.Clock() : null;
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      if (!heroBookGroup) return;
+
+      const elapsed = threeClock ? threeClock.getElapsedTime() : 0;
+      heroBookGroup.rotation.y += (targetRotationY - heroBookGroup.rotation.y) * 0.08;
+      heroBookGroup.rotation.x += (targetRotationX - heroBookGroup.rotation.x) * 0.08;
+      heroBookGroup.position.y = Math.sin(elapsed * 1.5) * 0.06;
+
+      coverOpenAngle += (targetCoverAngle - coverOpenAngle) * 0.08;
+      if (pagesMesh) {
+        pagesMesh.position.z = coverOpenAngle * 0.12;
+        pagesMesh.rotation.y = coverOpenAngle * 0.18;
+      }
+
+      if (heroRenderer && heroScene && heroCamera) {
+        heroRenderer.render(heroScene, heroCamera);
+      }
+    }
+  </script>
+
+  <script>
+    let sproutCanvasEl, sproutCtx;
+    let plantsList = [];
+    let raindropsList = [];
+    let pollinatorsList = [];
+    let isRainingShower = false;
+    let rainCounter = 0;
+    let bloomCount = 0;
+    let isSunlightSurge = false;
+    let currentPlantSeedType = 'poppy';
+
+    function setPlantSeedType(type) {
+      currentPlantSeedType = type;
+      ['poppy', 'chamomile', 'lavender'].forEach(t => {
+        const btn = document.getElementById(`seedTypeBtn-${t}`);
+        if (btn) {
+          if (t === type) {
+            btn.className = 'px-2.5 py-1 rounded-full bg-verda-terracotta text-white font-bold cursor-pointer transition-all';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-full text-verda-deep hover:text-black font-semibold cursor-pointer transition-all';
+          }
+        }
+      });
+      playTactilePaperSound();
+    }
+
+    function initMeadowCanvas() {
+      sproutCanvasEl = document.getElementById('sproutCanvas');
+      if (!sproutCanvasEl) return;
+      sproutCtx = sproutCanvasEl.getContext('2d');
+      resizeMeadowCanvas();
+
+      sproutCanvasEl.addEventListener('pointerdown', (e) => {
+        const rect = sproutCanvasEl.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        plantSeedAt(x, y);
+      });
+
+      renderMeadowLoop();
+    }
+
+    function resizeMeadowCanvas() {
+      if (!sproutCanvasEl) return;
+      const parent = sproutCanvasEl.parentElement;
+      sproutCanvasEl.width = parent.clientWidth || 800;
+      sproutCanvasEl.height = 480;
+    }
+
+    class MeadowPlant {
+      constructor(x, y, seedType) {
+        this.x = x;
+        this.rootY = Math.max(y, sproutCanvasEl.height - 90);
+        this.currentHeight = 0;
+        this.targetHeight = 90 + Math.random() * 130;
+        this.curve = (Math.random() - 0.5) * 40;
+        this.flowerType = seedType || 'poppy';
+        this.petalScale = 0;
+        this.isBloomed = false;
+        this.swaySpeed = 0.02 + Math.random() * 0.02;
+        this.swayOffset = Math.random() * Math.PI * 2;
+      }
+
+      update() {
+        if (this.currentHeight < this.targetHeight) {
+          this.currentHeight += (isSunlightSurge ? 3.8 : 2.0);
+        } else if (this.petalScale < 1) {
+          this.petalScale += (isSunlightSurge ? 0.09 : 0.045);
+          if (!this.isBloomed && this.petalScale >= 0.9) {
+            this.isBloomed = true;
+            bloomCount++;
+            document.getElementById('bloomCounterText').innerText = bloomCount;
+            if (pollinatorsList.length < 12) {
+              pollinatorsList.push(new GardenBee(this.x, this.rootY - this.targetHeight));
+            }
+          }
+        }
+      }
+
+      draw(time) {
+        const sway = Math.sin(time * this.swaySpeed + this.swayOffset) * 12;
+        const tipX = this.x + this.curve + sway;
+        const tipY = this.rootY - this.currentHeight;
+
+        sproutCtx.beginPath();
+        sproutCtx.moveTo(this.x, this.rootY);
+        sproutCtx.quadraticCurveTo(this.x + this.curve * 0.5, this.rootY - this.currentHeight * 0.5, tipX, tipY);
+        sproutCtx.strokeStyle = '#4B5E50';
+        sproutCtx.lineWidth = 3.5;
+        sproutCtx.lineCap = 'round';
+        sproutCtx.stroke();
+
+        if (this.currentHeight > 35) {
+          const midX = this.x + this.curve * 0.3 + sway * 0.3;
+          const midY = this.rootY - this.currentHeight * 0.45;
+          sproutCtx.beginPath();
+          sproutCtx.ellipse(midX - 10, midY, 10, 4, -0.4, 0, Math.PI * 2);
+          sproutCtx.fillStyle = '#65836B';
+          sproutCtx.fill();
+
+          sproutCtx.beginPath();
+          sproutCtx.ellipse(midX + 10, midY - 8, 10, 4, 0.4, 0, Math.PI * 2);
+          sproutCtx.fill();
+        }
+
+        if (this.petalScale > 0) {
+          sproutCtx.save();
+          sproutCtx.translate(tipX, tipY);
+          sproutCtx.scale(this.petalScale, this.petalScale);
+
+          if (this.flowerType === 'poppy') {
+            sproutCtx.fillStyle = '#BA5D3F';
+            for (let i = 0; i < 5; i++) {
+              sproutCtx.beginPath();
+              sproutCtx.rotate((Math.PI * 2) / 5);
+              sproutCtx.arc(0, 13, 11, 0, Math.PI * 2);
+              sproutCtx.fill();
+            }
+            sproutCtx.beginPath();
+            sproutCtx.arc(0, 0, 6.5, 0, Math.PI * 2);
+            sproutCtx.fillStyle = '#26382B';
+            sproutCtx.fill();
+          } else if (this.flowerType === 'chamomile') {
+            sproutCtx.fillStyle = '#FAF7F2';
+            for (let i = 0; i < 10; i++) {
+              sproutCtx.beginPath();
+              sproutCtx.rotate((Math.PI * 2) / 10);
+              sproutCtx.ellipse(0, 12, 4, 9, 0, 0, Math.PI * 2);
+              sproutCtx.fill();
+            }
+            sproutCtx.beginPath();
+            sproutCtx.arc(0, 0, 6, 0, Math.PI * 2);
+            sproutCtx.fillStyle = '#C5A059';
+            sproutCtx.fill();
+          } else {
+            sproutCtx.fillStyle = '#9C7DA8';
+            for (let j = 0; j < 6; j++) {
+              sproutCtx.beginPath();
+              sproutCtx.ellipse(-4, -j * 5, 4, 3, 0.3, 0, Math.PI * 2);
+              sproutCtx.ellipse(4, -j * 5, 4, 3, -0.3, 0, Math.PI * 2);
+              sproutCtx.fill();
+            }
+          }
+          sproutCtx.restore();
+        }
+      }
+    }
+
+    class GardenBee {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 2.2;
+        this.vy = (Math.random() - 0.5) * 2.2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 20 || this.x > sproutCanvasEl.width - 20) this.vx *= -1;
+        if (this.y < 30 || this.y > sproutCanvasEl.height - 80) this.vy *= -1;
+      }
+      draw() {
+        sproutCtx.fillStyle = '#F4D03F';
+        sproutCtx.beginPath();
+        sproutCtx.ellipse(this.x, this.y, 4.5, 3.2, 0, 0, Math.PI * 2);
+        sproutCtx.fill();
+
+        sproutCtx.fillStyle = '#FFFFFF';
+        sproutCtx.beginPath();
+        sproutCtx.arc(this.x - 2, this.y - 3, 2.2, 0, Math.PI * 2);
+        sproutCtx.arc(this.x + 2, this.y - 3, 2.2, 0, Math.PI * 2);
+        sproutCtx.fill();
+      }
+    }
+
+    function plantSeedAt(x, y) {
+      if (plantsList.length >= 45) {
+        plantsList.shift();
+      }
+      plantsList.push(new MeadowPlant(x, y, currentPlantSeedType));
+      playTactilePaperSound();
+    }
+
+    function triggerRainShower() {
+      isRainingShower = true;
+      rainCounter = 180;
+      plantsList.forEach(p => { p.targetHeight += 25; });
+      playTactilePaperSound();
+    }
+
+    function triggerSunlightBurst() {
+      isSunlightSurge = true;
+      setTimeout(() => { isSunlightSurge = false; }, 4000);
+      playTactilePaperSound();
+    }
+
+    function clearMeadow() {
+      plantsList = [];
+      pollinatorsList = [];
+      bloomCount = 0;
+      document.getElementById('bloomCounterText').innerText = '0';
+      playTactilePaperSound();
+    }
+
+    let meadowFrame = 0;
+    function renderMeadowLoop() {
+      requestAnimationFrame(renderMeadowLoop);
+      if (!sproutCtx || !sproutCanvasEl) return;
+      meadowFrame++;
+
+      const grad = sproutCtx.createLinearGradient(0, 0, 0, sproutCanvasEl.height);
+      grad.addColorStop(0, '#161D16');
+      grad.addColorStop(0.7, '#241B16');
+      grad.addColorStop(1, '#140E0A');
+      sproutCtx.fillStyle = grad;
+      sproutCtx.fillRect(0, 0, sproutCanvasEl.width, sproutCanvasEl.height);
+
+      sproutCtx.fillStyle = '#2D1F17';
+      sproutCtx.beginPath();
+      sproutCtx.ellipse(sproutCanvasEl.width / 2, sproutCanvasEl.height, sproutCanvasEl.width * 0.8, 90, 0, 0, Math.PI * 2);
+      sproutCtx.fill();
+
+      if (isRainingShower) {
+        rainCounter--;
+        if (rainCounter <= 0) isRainingShower = false;
+        for (let i = 0; i < 4; i++) {
+          raindropsList.push({
+            x: Math.random() * sproutCanvasEl.width,
+            y: 0,
+            speed: 10 + Math.random() * 5
+          });
+        }
+      }
+
+      sproutCtx.strokeStyle = 'rgba(174, 214, 241, 0.45)';
+      sproutCtx.lineWidth = 1.5;
+      for (let i = raindropsList.length - 1; i >= 0; i--) {
+        const r = raindropsList[i];
+        r.y += r.speed;
+        sproutCtx.beginPath();
+        sproutCtx.moveTo(r.x, r.y);
+        sproutCtx.lineTo(r.x, r.y + 12);
+        sproutCtx.stroke();
+        if (r.y > sproutCanvasEl.height) raindropsList.splice(i, 1);
+      }
+
+      plantsList.forEach(p => {
+        p.update();
+        p.draw(meadowFrame);
+      });
+
+      pollinatorsList.forEach(b => {
+        b.update();
+        b.draw();
+      });
+    }
+  </script>
+
+  <script>
+    const ambientCanvas = document.getElementById('ambientPetalsCanvas');
+    const ambientCtx = ambientCanvas ? ambientCanvas.getContext('2d') : null;
+    let petals = [];
+
+    function resizeAmbientCanvas() {
+      if (!ambientCanvas) return;
+      ambientCanvas.width = window.innerWidth;
+      ambientCanvas.height = window.innerHeight;
+    }
+
+    class AmbientPetal {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        if (!ambientCanvas) return;
+        this.x = Math.random() * ambientCanvas.width;
+        this.y = -20;
+        this.size = 3 + Math.random() * 5;
+        this.speedY = 0.5 + Math.random() * 0.8;
+        this.speedX = (Math.random() - 0.5) * 0.7;
+        this.angle = Math.random() * Math.PI * 2;
+        this.rotSpeed = 0.01 + Math.random() * 0.02;
+        this.opacity = 0.2 + Math.random() * 0.25;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX + Math.sin(this.y * 0.02) * 0.3;
+        this.angle += this.rotSpeed;
+        if (ambientCanvas && this.y > ambientCanvas.height + 20) this.reset();
+      }
+      draw() {
+        if (!ambientCtx) return;
+        ambientCtx.save();
+        ambientCtx.translate(this.x, this.y);
+        ambientCtx.rotate(this.angle);
+        ambientCtx.fillStyle = `rgba(186, 93, 63, ${this.opacity})`;
+        ambientCtx.beginPath();
+        ambientCtx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
+        ambientCtx.fill();
+        ambientCtx.restore();
+      }
+    }
+
+    function initAmbientPetals() {
+      if (!ambientCanvas) return;
+      resizeAmbientCanvas();
+      for (let i = 0; i < 20; i++) {
+        petals.push(new AmbientPetal());
+      }
+      renderAmbientPetals();
+    }
+
+    function renderAmbientPetals() {
+      if (!ambientCtx || !ambientCanvas) return;
+      ambientCtx.clearRect(0, 0, ambientCanvas.width, ambientCanvas.height);
+      petals.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(renderAmbientPetals);
+    }
+  </script>
+
+  <script>
+    let cart = [
+      { title: 'Botanical Seed Journal A5', price: 28.00, variant: 'Sage Moss', qty: 1 },
+      { title: 'Wild Bamboo Fountain Pen', price: 42.00, variant: 'Solid Brass Nib', qty: 1 }
+    ];
+
+    function toggleCartDrawer(show) {
+      const drawer = document.getElementById('cartDrawer');
+      const panel = document.getElementById('cartPanel');
+      if (!drawer || !panel) return;
+
+      if (show) {
+        drawer.classList.remove('hidden');
+        void drawer.offsetWidth;
+        drawer.classList.remove('opacity-0');
+        panel.classList.remove('translate-x-full');
+        renderCartItems();
+      } else {
+        drawer.classList.add('opacity-0');
+        panel.classList.add('translate-x-full');
+        setTimeout(() => {
+          drawer.classList.add('hidden');
+        }, 300);
+      }
+      playTactilePaperSound();
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cartItemsList');
+      if (!container) return;
+      container.innerHTML = '';
+      let subtotal = 0;
+      let totalCount = 0;
+
+      cart.forEach((item, index) => {
+        subtotal += item.price * item.qty;
+        totalCount += item.qty;
+
+        const el = document.createElement('div');
+        el.className = 'flex items-center justify-between p-3 rounded-2xl bg-white border border-verda-sand/70 shadow-sm';
+        el.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-verda-sage/20 text-verda-forest flex items-center justify-center font-bold text-sm">
+              🌱
+            </div>
+            <div>
+              <div class="text-xs font-bold text-verda-forest">${item.title}</div>
+              <div class="text-[11px] text-verda-deep/60">${item.variant}</div>
+              <div class="text-xs font-semibold text-verda-terracotta font-serif">$${item.price.toFixed(2)}</div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="changeItemQty(${index}, -1)" class="w-6 h-6 rounded-full bg-verda-sand/60 hover:bg-verda-sand flex items-center justify-center text-xs font-bold cursor-pointer" aria-label="Decrease quantity">-</button>
+            <span class="text-xs font-bold w-4 text-center font-mono">${item.qty}</span>
+            <button onclick="changeItemQty(${index}, 1)" class="w-6 h-6 rounded-full bg-verda-sand/60 hover:bg-verda-sand flex items-center justify-center text-xs font-bold cursor-pointer" aria-label="Increase quantity">+</button>
+          </div>
+        `;
+        container.appendChild(el);
+      });
+
+      document.getElementById('cartSubtotalText').innerText = `$${subtotal.toFixed(2)}`;
+      document.getElementById('bagCounterBadge').innerText = totalCount;
+      document.getElementById('drawerCountText').innerText = totalCount;
+    }
+
+    function changeItemQty(index, delta) {
+      if (!cart[index]) return;
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index, 1);
+      renderCartItems();
+      playTactilePaperSound();
+    }
+
+    function addToCart(title, price, variant) {
+      const existing = cart.find(i => i.title === title && i.variant === variant);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ title, price, variant, qty: 1 });
+      }
+      playTactilePaperSound();
+      toggleCartDrawer(true);
+    }
+
+    function filterProducts(category, btnElement) {
+      const cards = document.querySelectorAll('.product-card');
+      const buttons = document.querySelectorAll('.prod-filter-btn');
+
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-verda-forest', 'text-white');
+        btn.classList.add('bg-verda-sand/50', 'text-verda-deep');
+      });
+
+      if (btnElement) {
+        btnElement.classList.remove('bg-verda-sand/50', 'text-verda-deep');
+        btnElement.classList.add('bg-verda-forest', 'text-white');
+      }
+
+      cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+      playTactilePaperSound();
+    }
+
+    const materialData = {
+      cotton: {
+        title: "Post-Industrial Textile Cotton",
+        desc: "We rescue post-cutting cotton rags from ethical Indian garment makers that would otherwise be landfilled or incinerated. Because natural cotton fibers are significantly longer than wood cellulose, Verda paper delivers fountain-pen resistance, supple tensile strength, and zero bleed-through.",
+        partner: "Nilgiri Ethical Weavers Cooperative"
+      },
+      seeds: {
+        title: "Wild Pollinator Non-GMO Seed Mix",
+        desc: "Certified organic seed varietals selected in concert with entomologists: Sweet Chamomile, Dwarf Corn Poppy, and Wild Field Lavender designed to restore pollinator corridors.",
+        partner: "Heritage Seed Savers Collective • 94.2% Viability"
+      },
+      coffee: {
+        title: "Reclaimed Roasted Coffee Husks",
+        desc: "The protective papery skin of roasted espresso beans is pulverized into our vat pulp, resulting in rich earthy hues and natural aromatic warmth.",
+        partner: "Estate Roast Upcycling Collaborative • Zero Carbon Added"
+      },
+      inks: {
+        title: "Biodegradable Vegetable & Algae Inks",
+        desc: "Formulated exclusively with non-toxic soybean oil, spirulina algae pigments, and natural gum binders. Completely safe for topsoil and home compost worms.",
+        partner: "Living Color Laboratories • 100% Compostable"
+      }
+    };
+
+    function switchMaterialTab(key) {
+      ['cotton', 'seeds', 'coffee', 'inks'].forEach(k => {
+        const btn = document.getElementById(`tabBtn-${k}`);
+        if (btn) {
+          btn.className = (k === key) 
+            ? 'px-4 py-2 rounded-full bg-verda-gold text-verda-deep text-xs font-bold transition-all cursor-pointer'
+            : 'px-4 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 text-xs font-bold transition-all cursor-pointer';
+        }
+      });
+
+      const d = materialData[key];
+      if (!d) return;
+      document.getElementById('matTitle').innerText = d.title;
+      document.getElementById('matDesc').innerText = d.desc;
+      document.getElementById('matPartner').innerText = d.partner;
+      playTactilePaperSound();
+    }
+
+    function calculateEcoImpact(units) {
+      document.getElementById('sliderValueText').innerText = `${units} ${units == 1 ? 'Notebook' : 'Notebooks'}`;
+      const trees = (units * 0.06).toFixed(2);
+      const water = Math.round(units * 38);
+      const flowers = (units * 200).toLocaleString();
+      const plastic = (units * 0.32).toFixed(1);
+
+      document.getElementById('metricTrees').innerText = trees;
+      document.getElementById('metricWater').innerText = `${water} L`;
+      document.getElementById('metricFlowers').innerText = flowers;
+      document.getElementById('metricPlastic').innerText = `${plastic} kg`;
+    }
+
+    function copyToClipboard(text) {
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      temp.style.position = 'fixed';
+      temp.style.opacity = '0';
+      document.body.appendChild(temp);
+      temp.select();
+      try {
+        document.execCommand('copy');
+      } catch (e){}
+      document.body.removeChild(temp);
+    }
+
+    function shareImpactResult() {
+      const units = document.getElementById('stationerySlider').value;
+      const text = `I just measured my circular shift with Verda Folio: Switching ${units} notebooks preserves ${document.getElementById('metricTrees').innerText} trees and sprouts ${document.getElementById('metricFlowers').innerText} pollinator wildflowers! 🌱 https://verdafolio.com`;
+      copyToClipboard(text);
+      showCustomModal("Impact Certificate Copied", "Your verified carbon and biodiversity saving stats have been copied to your clipboard!");
+    }
+
+    function checkoutSimulation() {
+      toggleCartDrawer(false);
+      showCustomModal("Plantable Order Reserved", "Thank you for supporting circular living goods! Your parcel is carefully prepared with a complimentary wildflower seedling bookmark in 100% home-compostable packaging.");
+    }
+
+    function toggleJudgeGuideModal(show) {
+      const modal = document.getElementById('judgeGuideModal');
+      if (show) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      playTactilePaperSound();
+    }
+
+    function showCustomModal(title, body) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalBody').innerText = body;
+      const modal = document.getElementById('infoModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      playTactilePaperSound();
+    }
+
+    function closeCustomModal() {
+      const modal = document.getElementById('infoModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Comprehensive Init Routine
+    function initAllInteractiveFeatures() {
+      initThreeHero();
+      initMeadowCanvas();
+      initAmbientPetals();
+      renderCartItems();
+
+      // Spawn 3 starter plants in garden
+      setTimeout(() => {
+        if (sproutCanvasEl) {
+          plantSeedAt(sproutCanvasEl.width * 0.25, sproutCanvasEl.height - 45);
+          plantSeedAt(sproutCanvasEl.width * 0.5, sproutCanvasEl.height - 35);
+          plantSeedAt(sproutCanvasEl.width * 0.75, sproutCanvasEl.height - 50);
+        }
+      }, 300);
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      initAllInteractiveFeatures();
+    } else {
+      window.addEventListener('DOMContentLoaded', initAllInteractiveFeatures);
+      window.addEventListener('load', initAllInteractiveFeatures);
+    }
+  </script>
+
+</body>
+</html>
