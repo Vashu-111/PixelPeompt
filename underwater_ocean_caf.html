@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQUARIA // Abyssal Ocean Café & Sub-Surface Observatory</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts: Outfit & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ocean: {
+              sunlit: '#0ea5e9',
+              teal: '#06b6d4',
+              cyan: '#00f5d4',
+              twilight: '#0284c7',
+              midnight: '#034173',
+              abyss: '#031930',
+              hadal: '#010915',
+              deepBlack: '#00040a',
+              biogreen: '#10b981',
+              biopurple: '#a855f7',
+              coral: '#f43f5e',
+              gold: '#fbbf24'
+            }
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace']
+          },
+          animation: {
+            'float-gentle': 'floatGentle 6s ease-in-out infinite',
+            'float-delayed': 'floatGentle 8s ease-in-out 2s infinite',
+            'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+            'wave-sway': 'waveSway 7s ease-in-out infinite',
+            'shimmer-caustic': 'shimmerCaustic 8s ease infinite'
+          },
+          keyframes: {
+            floatGentle: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-12px) rotate(1deg)' }
+            },
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.6', filter: 'drop-shadow(0 0 12px rgba(0, 245, 212, 0.4))' },
+              '50%': { opacity: '1', filter: 'drop-shadow(0 0 28px rgba(0, 245, 212, 0.8))' }
+            },
+            waveSway: {
+              '0%, 100%': { transform: 'translateX(0) scaleY(1)' },
+              '50%': { transform: 'translateX(-20px) scaleY(1.05)' }
+            },
+            shimmerCaustic: {
+              '0%, 100%': { opacity: '0.2' },
+              '50%': { opacity: '0.45' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --current-depth-color: #031930;
+      --accent-glow: #00f5d4;
+    }
+
+    body {
+      background-color: #010915;
+      color: #e2e8f0;
+      overflow-x: hidden;
+      font-family: 'Outfit', sans-serif;
+      transition: background-color 1.2s ease;
+    }
+
+    /* Underwater Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #010915;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #00f5d4, #0284c7, #010915);
+      border-radius: 6px;
+    }
+
+    /* Sub-Aquatic Glass Panels */
+    .hydro-glass {
+      background: rgba(3, 25, 48, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 245, 212, 0.15);
+      box-shadow: 0 16px 36px 0 rgba(0, 4, 10, 0.6), inset 0 0 20px rgba(0, 245, 212, 0.03);
+    }
+    .hydro-glass-hover {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hydro-glass-hover:hover {
+      transform: translateY(-6px) scale(1.01);
+      border-color: rgba(0, 245, 212, 0.45);
+      box-shadow: 0 20px 48px -10px rgba(0, 245, 212, 0.3);
+    }
+
+    /* Fluid Caustic Text Gradient */
+    .ocean-text-gradient {
+      background: linear-gradient(135deg, #00f5d4 0%, #38bdf8 45%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .biolum-text-glow {
+      text-shadow: 0 0 14px rgba(0, 245, 212, 0.7), 0 0 28px rgba(6, 182, 212, 0.4);
+    }
+
+    /* Background Canvas Stacking */
+    #ocean-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Wave Bottom Silhouette */
+    .wave-shape-divider {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      line-height: 0;
+      transform: rotate(180deg);
+    }
+    .wave-shape-divider svg {
+      position: relative;
+      display: block;
+      width: calc(100% + 1.3px);
+      height: 60px;
+    }
+
+    /* Sub-Surface Light Rays */
+    .caustic-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(0, 245, 212, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="relative min-h-screen text-slate-100 selection:bg-ocean-cyan selection:text-ocean-deepBlack">
+
+  <!-- Procedural Canvas: Caustics, Rising Bubbles, Marine Life Silhouettes -->
+  <canvas id="ocean-canvas"></canvas>
+
+  <!-- Sound Status Indicator (Pill at Top Left) -->
+  <div class="fixed top-4 left-4 z-50 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full hydro-glass text-[11px] font-mono border-ocean-cyan/20 text-ocean-cyan">
+    <span class="w-2 h-2 rounded-full bg-ocean-cyan animate-ping"></span>
+    <span id="hydrophone-status">HYDROPHONE: AMBIENT 40Hz DWELL</span>
+  </div>
+
+  <!-- Floating Wave-Shaped Navigation Bar (Bonus Challenge Requirement) -->
+  <header class="fixed top-3 inset-x-0 z-40 max-w-6xl mx-auto px-4">
+    <nav class="hydro-glass rounded-3xl border border-ocean-cyan/25 px-5 py-3.5 shadow-2xl flex items-center justify-between transition-all duration-300">
+      
+      <!-- Brand & Submersible Logo -->
+      <a href="#hero" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-ocean-cyan via-ocean-twilight to-ocean-midnight p-[2px] shadow-lg shadow-ocean-cyan/25 group-hover:shadow-ocean-cyan/60 transition-all">
+          <div class="w-full h-full bg-ocean-deepBlack rounded-[14px] flex items-center justify-center">
+            <i class="fa-solid fa-water text-ocean-cyan text-lg group-hover:scale-110 transition-transform"></i>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xl font-black tracking-tight text-white font-sans">AQUARIA</span>
+            <span class="px-2 py-0.5 rounded-md bg-ocean-cyan/15 text-[10px] font-mono font-bold text-ocean-cyan border border-ocean-cyan/30">
+              -120M
+            </span>
+          </div>
+          <span class="block text-[9px] font-mono tracking-widest text-slate-400 uppercase -mt-0.5">
+            SUB-SURFACE HYDRO-CAFÉ
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Section Links -->
+      <div class="hidden lg:flex items-center gap-6 text-xs font-mono font-medium text-slate-300">
+        <a href="#hero" class="hover:text-ocean-cyan transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-compass text-[10px] text-ocean-cyan"></i> Surface
+        </a>
+        <a href="#ambience" class="hover:text-ocean-cyan transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-gem text-[10px] text-ocean-cyan"></i> The Observatory
+        </a>
+        <a href="#menu" class="hover:text-ocean-cyan transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-mug-hot text-[10px] text-ocean-cyan"></i> Depth Menu
+        </a>
+        <a href="#engineering" class="hover:text-ocean-cyan transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-shield-halved text-[10px] text-ocean-cyan"></i> Sub-Specs
+        </a>
+        <a href="#location" class="hover:text-ocean-cyan transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-anchor text-[10px] text-ocean-cyan"></i> Access & Hours
+        </a>
+      </div>
+
+      <!-- Action Buttons: Audio Toggle, AI Sommelier & Booking -->
+      <div class="flex items-center gap-2.5">
+        <!-- Ambient Hydro-Audio Toggle -->
+        <button onclick="toggleHydroAudio()" id="audio-btn" class="p-2.5 sm:px-3 sm:py-1.5 rounded-xl bg-ocean-abyss/80 hover:bg-ocean-midnight border border-ocean-cyan/30 text-ocean-cyan text-xs font-mono transition-all flex items-center gap-1.5" title="Toggle Sub-Surface Ambient Sound">
+          <i class="fa-solid fa-volume-xmark" id="audio-btn-icon"></i>
+          <span class="hidden sm:inline" id="audio-btn-text">Audio: Mute</span>
+        </button>
+
+        <!-- AI Deep-Sea Sommelier Button -->
+        <button onclick="openSommelierModal()" class="px-3 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 text-purple-300 text-xs font-mono transition-all flex items-center gap-1.5 shadow-lg shadow-purple-900/30">
+          <i class="fa-solid fa-sparkles text-purple-400 animate-pulse"></i>
+          <span class="hidden md:inline">Deep-Sea AI</span>
+        </button>
+
+        <!-- Book Table CTA -->
+        <button onclick="openBookingModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-ocean-cyan via-ocean-teal to-sky-600 text-ocean-deepBlack font-black font-mono text-xs uppercase tracking-wider shadow-lg shadow-ocean-cyan/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-ticket-simple text-xs"></i>
+          <span>Reserve Table</span>
+        </button>
+
+        <!-- Mobile Menu Hamburger -->
+        <button onclick="toggleMobileNav()" class="lg:hidden p-2 rounded-xl bg-ocean-abyss border border-white/10 text-slate-300">
+          <i class="fa-solid fa-bars" id="mobile-toggle-icon"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-nav-drawer" class="lg:hidden hidden mt-2 hydro-glass rounded-2xl p-4 border border-ocean-cyan/20 flex flex-col gap-3 text-xs font-mono">
+      <a href="#hero" onclick="toggleMobileNav()" class="py-1.5 px-3 rounded-lg hover:bg-white/5 flex items-center gap-2">
+        <i class="fa-solid fa-compass text-ocean-cyan"></i> Surface & Hero
+      </a>
+      <a href="#ambience" onclick="toggleMobileNav()" class="py-1.5 px-3 rounded-lg hover:bg-white/5 flex items-center gap-2">
+        <i class="fa-solid fa-gem text-ocean-cyan"></i> The Observatory Ambience
+      </a>
+      <a href="#menu" onclick="toggleMobileNav()" class="py-1.5 px-3 rounded-lg hover:bg-white/5 flex items-center gap-2">
+        <i class="fa-solid fa-mug-hot text-ocean-cyan"></i> Depth-Graded Menu
+      </a>
+      <a href="#engineering" onclick="toggleMobileNav()" class="py-1.5 px-3 rounded-lg hover:bg-white/5 flex items-center gap-2">
+        <i class="fa-solid fa-shield-halved text-ocean-cyan"></i> Engineering & Specs
+      </a>
+      <a href="#location" onclick="toggleMobileNav()" class="py-1.5 px-3 rounded-lg hover:bg-white/5 flex items-center gap-2">
+        <i class="fa-solid fa-anchor text-ocean-cyan"></i> Location, Shuttle & Hours
+      </a>
+      <div class="pt-2 border-t border-white/10 flex justify-between items-center">
+        <button onclick="openSommelierModal(); toggleMobileNav()" class="text-purple-300 font-bold flex items-center gap-1.5">
+          <i class="fa-solid fa-sparkles text-purple-400"></i> Open AI Sommelier
+        </button>
+        <button onclick="openBookingModal(); toggleMobileNav()" class="text-ocean-cyan font-bold">
+          Book Table →
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 1: HERO (Atmosphere, Depth Controller, Oceanic Mood)              -->
+  <!-- ========================================================================= -->
+  <main class="relative z-10 pt-28 pb-20">
+
+    <section id="hero" class="relative min-h-[92vh] flex flex-col justify-center items-center px-4 overflow-hidden text-center">
+      <div class="caustic-overlay"></div>
+
+      <!-- Depth Badge & Pressure Metrics -->
+      <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full hydro-glass border-ocean-cyan/40 text-xs font-mono text-ocean-cyan mb-8 shadow-2xl animate-pulse-glow">
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ocean-cyan opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-ocean-teal"></span>
+        </span>
+        <span class="tracking-wider">OCEANIC OBSERVATORY // SUBMERGED 120 METERS</span>
+        <span class="text-slate-500">|</span>
+        <span id="hero-pressure-reading" class="text-white font-bold">13.2 ATMOSPHERES</span>
+      </div>
+
+      <!-- Main Heading with Aquatic Flow -->
+      <h1 class="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.05] max-w-5xl mb-6">
+        DINE AT THE EDGE OF <br class="hidden sm:inline">
+        <span class="ocean-text-gradient biolum-text-glow">THE ABYSSAL DEEP</span>
+      </h1>
+
+      <!-- Concept Subtitle -->
+      <p class="max-w-2xl text-base sm:text-xl text-slate-300 font-light leading-relaxed mb-10">
+        Step beneath the oceanic horizon. Savor hyperbaric cold brews, bioluminescent algae lattes, 
+        and Michelin-crafted marine pastries inside a 360-degree curved borosilicate quartz dome surrounded by living reef giants.
+      </p>
+
+      <!-- Primary Action Row -->
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-14">
+        <button onclick="openBookingModal()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-ocean-cyan via-ocean-teal to-sky-500 text-ocean-deepBlack font-black text-sm uppercase tracking-wider font-mono shadow-2xl shadow-ocean-cyan/30 hover:shadow-ocean-cyan/60 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+          <span>Book Sub-Aquatic Table</span>
+          <i class="fa-solid fa-arrow-down text-xs"></i>
+        </button>
+
+        <a href="#menu" class="px-7 py-4 rounded-2xl hydro-glass hover:bg-ocean-midnight/50 text-white font-mono text-sm border border-ocean-cyan/30 transition-all flex items-center gap-2.5">
+          <i class="fa-solid fa-utensils text-ocean-cyan text-xs"></i>
+          <span>Explore Depth Menu</span>
+        </a>
+
+        <button onclick="triggerDepthBurst()" class="px-5 py-4 rounded-2xl hydro-glass text-ocean-cyan hover:text-white font-mono text-xs border border-white/10 hover:border-ocean-cyan/40 transition-all flex items-center gap-2">
+          <i class="fa-solid fa-burst text-ocean-cyan"></i>
+          <span>Pulse Hydro-Wave</span>
+        </button>
+      </div>
+
+      <!-- Interactive Depth Simulator Slider (Bonus: Depth-based Gradients) -->
+      <div class="w-full max-w-3xl hydro-glass p-6 rounded-3xl border border-ocean-cyan/25 shadow-2xl text-left">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-gauge-high text-ocean-cyan text-sm"></i>
+            <span class="text-xs font-mono uppercase font-bold tracking-wider text-slate-200">
+              Interactive Barometric Depth Dial
+            </span>
+          </div>
+          <div class="text-xs font-mono text-ocean-cyan">
+            Zone: <strong id="slider-zone-name" class="text-white">Epipelagic (Sunlight Reef)</strong>
+          </div>
+        </div>
+
+        <div class="relative py-2">
+          <input 
+            type="range" 
+            id="depth-slider" 
+            min="10" 
+            max="4000" 
+            value="120" 
+            step="10"
+            oninput="handleDepthSlider(this.value)"
+            class="w-full h-2.5 bg-gradient-to-r from-ocean-sunlit via-ocean-midnight to-ocean-deepBlack rounded-lg appearance-none cursor-pointer accent-cyan-400"
+          >
+          <div class="flex justify-between text-[10px] font-mono text-slate-400 mt-2">
+            <span>0m Surface</span>
+            <span>200m Twilight</span>
+            <span>1,000m Midnight</span>
+            <span>4,000m Abyssal Plain</span>
+          </div>
+        </div>
+
+        <!-- Real-time Atmospheric Metrics Readout -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 text-xs font-mono">
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-slate-400 text-[10px] block uppercase">Current Depth</span>
+            <span id="readout-depth" class="text-base font-bold text-ocean-cyan">-120 Meters</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-slate-400 text-[10px] block uppercase">Hydrostatic Pressure</span>
+            <span id="readout-pressure" class="text-base font-bold text-white">13.0 ATM</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-slate-400 text-[10px] block uppercase">Ambient Water Temp</span>
+            <span id="readout-temp" class="text-base font-bold text-sky-400">14.2 °C</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+            <span class="text-slate-400 text-[10px] block uppercase">Water Clarity / Lux</span>
+            <span id="readout-lux" class="text-base font-bold text-emerald-400">74% Photic</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: THE AMBIENCE & INTERIOR OBSERVATORY GALLERY                    -->
+    <!-- ========================================================================= -->
+    <section id="ambience" class="relative py-24 px-4 max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-ocean-cyan/10 border border-ocean-cyan/30 text-xs font-mono text-ocean-cyan mb-3">
+          <i class="fa-solid fa-eye text-xs"></i>
+          <span>SECTION 02 // SUB-AQUATIC ARCHITECTURE</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
+          THE <span class="ocean-text-gradient">OBSERVATORY</span> CONCEPT
+        </h2>
+        <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-base leading-relaxed">
+          Engineered inside three interconnected geodesic chambers built directly onto the continental shelf. 
+          Enjoy uninterrupted 360° views of deep sea coral gardens, schooling pelagic species, and gentle oceanic currents.
+        </p>
+      </div>
+
+      <!-- Observatory Interactive Viewer & Filter -->
+      <div class="hydro-glass p-6 sm:p-10 rounded-3xl border border-ocean-cyan/25 shadow-2xl mb-12">
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-white/10 mb-8">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-ocean-cyan/20 text-ocean-cyan flex items-center justify-center text-lg">
+              <i class="fa-solid fa-camera-viewfinder"></i>
+            </div>
+            <div>
+              <h3 id="gallery-room-title" class="text-xl font-bold text-white">The Central Coral Rotunda</h3>
+              <p id="gallery-room-desc" class="text-xs text-slate-400 font-mono">Chamber A · 12-meter high reinforced quartz dome with 360° reef exposure</p>
+            </div>
+          </div>
+
+          <!-- Room Filter Buttons -->
+          <div class="flex flex-wrap gap-2">
+            <button onclick="switchRoom(0)" id="room-btn-0" class="room-pill px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-ocean-cyan text-ocean-deepBlack shadow-md">
+              01 // Coral Rotunda
+            </button>
+            <button onclick="switchRoom(1)" id="room-btn-1" class="room-pill px-3.5 py-1.5 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass">
+              02 // Jellyfish Atrium
+            </button>
+            <button onclick="switchRoom(2)" id="room-btn-2" class="room-pill px-3.5 py-1.5 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass">
+              03 // Trench Bar
+            </button>
+            <button onclick="switchRoom(3)" id="room-btn-3" class="room-pill px-3.5 py-1.5 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass">
+              04 // Pressure Pods
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Canvas Viewport (Simulating Sub-Surface Windows) -->
+        <div class="relative h-80 sm:h-[420px] rounded-2xl overflow-hidden border border-ocean-cyan/30 flex items-center justify-center group bg-ocean-deepBlack">
+          <canvas id="observatory-canvas" class="w-full h-full"></canvas>
+
+          <!-- Floating Overlay Information -->
+          <div class="absolute top-4 left-4 px-3.5 py-1.5 rounded-xl bg-ocean-deepBlack/80 backdrop-blur-md border border-white/10 text-xs font-mono text-ocean-cyan flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span id="observatory-cam-tag">LIVE FEED: QUARTZ TRANSDUCER CAM #03</span>
+          </div>
+
+          <div class="absolute bottom-4 left-4 right-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-ocean-deepBlack/85 backdrop-blur-md border border-white/10 text-xs font-mono">
+            <div class="flex items-center gap-4 text-slate-300">
+              <span><i class="fa-solid fa-fish text-ocean-cyan mr-1"></i> <span id="gallery-species-count">48 Coral Fish Visible</span></span>
+              <span><i class="fa-solid fa-droplet text-sky-400 mr-1"></i> Salinity: 35 PSU</span>
+              <span><i class="fa-solid fa-sun text-yellow-400 mr-1"></i> Sun Penetration: 18%</span>
+            </div>
+            <button onclick="simulateMarinePassage()" class="px-3 py-1.5 rounded-lg bg-ocean-cyan/20 hover:bg-ocean-cyan/30 text-ocean-cyan border border-ocean-cyan/40 text-[11px] transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Attract Marine Life</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ambience Pillar Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div class="p-5 rounded-2xl bg-white/5 border border-white/5 hydro-glass-hover">
+            <div class="w-10 h-10 rounded-xl bg-ocean-cyan/15 text-ocean-cyan flex items-center justify-center text-lg mb-3">
+              <i class="fa-solid fa-lightbulb"></i>
+            </div>
+            <h4 class="text-base font-bold text-white mb-1">Circadian Photic Lighting</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Ambient LED spectrum shifts harmoniously with exterior sun rays, ensuring natural eye decompression during descent and ascent.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white/5 border border-white/5 hydro-glass-hover">
+            <div class="w-10 h-10 rounded-xl bg-ocean-teal/15 text-ocean-teal flex items-center justify-center text-lg mb-3">
+              <i class="fa-solid fa-volume-low"></i>
+            </div>
+            <h4 class="text-base font-bold text-white mb-1">Acoustic Hydro-Balancing</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              External hydrophones capture real whale song frequencies and coral crackles, dynamically attenuated into meditative restaurant soundscapes.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white/5 border border-white/5 hydro-glass-hover">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-lg mb-3">
+              <i class="fa-solid fa-seedling"></i>
+            </div>
+            <h4 class="text-base font-bold text-white mb-1">Living Kelp Columns</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Internal spirulina bio-reactors and vertical algae tubes filter interior air while generating freshly harvested micro-nutrients for our kitchen.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: DEPTH-GRADED GASTRONOMY & MIXOLOGY MENU                        -->
+    <!-- ========================================================================= -->
+    <section id="menu" class="relative py-24 px-4 bg-ocean-abyss/40 border-t border-b border-ocean-cyan/15">
+      <div class="max-w-6xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ocean-cyan/10 border border-ocean-cyan/30 text-xs font-mono text-ocean-cyan mb-2">
+              <i class="fa-solid fa-utensils text-xs"></i>
+              <span>SECTION 03 // CULINARY EXPEDITION</span>
+            </div>
+            <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white">
+              DEPTH-GRADED <span class="ocean-text-gradient">GASTRONOMY</span>
+            </h2>
+            <p class="text-slate-300 text-sm mt-2 max-w-xl">
+              Every creation is calibrated to a specific oceanic strata — incorporating hyperbaric extraction, cold-water kelps, and edible bioluminescent flora.
+            </p>
+          </div>
+
+          <!-- Stratum Layer Filter Tabs -->
+          <div class="flex flex-wrap gap-2 mt-6 md:mt-0">
+            <button onclick="filterMenu('all')" id="menu-btn-all" class="menu-filter-btn px-4 py-2 rounded-xl text-xs font-mono font-bold bg-ocean-cyan text-ocean-deepBlack shadow-lg">
+              All Depths
+            </button>
+            <button onclick="filterMenu('epipelagic')" id="menu-btn-epipelagic" class="menu-filter-btn px-4 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass">
+              0 - 200m Sunlit
+            </button>
+            <button onclick="filterMenu('mesopelagic')" id="menu-btn-mesopelagic" class="menu-filter-btn px-4 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass">
+              200 - 1000m Twilight
+            </button>
+            <button onclick="filterMenu('bathypelagic')" id="menu-btn-bathypelagic" class="menu-filter-btn px-4 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass">
+              1000m+ Abyssal
+            </button>
+          </div>
+        </div>
+
+        <!-- Menu Cards Grid -->
+        <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          
+          <!-- Dish 1: Epipelagic -->
+          <div class="menu-item-card hydro-glass p-6 rounded-3xl border border-white/10 hydro-glass-hover flex flex-col justify-between" data-layer="epipelagic">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-500/40 uppercase">
+                  0 - 50m // Photic Zone
+                </span>
+                <span class="text-xs font-mono text-emerald-400 flex items-center gap-1">
+                  <i class="fa-solid fa-sparkles text-[10px]"></i> Mild Luminescence
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-1.5">Bioluminescent Coral Latte</h3>
+              <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                Organic blue spirulina froth, Madagascar Bourbon vanilla bean, cold-pressed almond milk, and food-grade Pyrocystis phytoplankton extract that glows under ambient light.
+              </p>
+              
+              <div class="space-y-1.5 mb-5 text-[11px] font-mono text-slate-300">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Extraction:</span>
+                  <span>Cold Ultrasonic Steep</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Sensory Notes:</span>
+                  <span class="text-ocean-cyan">Vanilla, Saline Bloom, Cream</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+              <span class="text-2xl font-black font-mono text-white">$12.50</span>
+              <button onclick="addToOrder('Bioluminescent Coral Latte', 12.50)" class="px-4 py-2 rounded-xl bg-ocean-cyan/20 hover:bg-ocean-cyan text-ocean-cyan hover:text-ocean-deepBlack font-mono text-xs font-bold transition-all border border-ocean-cyan/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Flight
+              </button>
+            </div>
+          </div>
+
+          <!-- Dish 2: Epipelagic Pastry -->
+          <div class="menu-item-card hydro-glass p-6 rounded-3xl border border-white/10 hydro-glass-hover flex flex-col justify-between" data-layer="epipelagic">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-500/40 uppercase">
+                  50 - 150m // Shallow Reef
+                </span>
+                <span class="text-xs font-mono text-slate-400 flex items-center gap-1">
+                  <i class="fa-solid fa-wheat-awn text-[10px]"></i> Artisan Pastry
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-1.5">Sea Salt Brioche & Kelp Butter</h3>
+              <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                48-hour fermented laminated brioche roll glazed with harvested Atlantic brine salt, accompanied by whipped cultured butter infused with young wild dulse kelp.
+              </p>
+
+              <div class="space-y-1.5 mb-5 text-[11px] font-mono text-slate-300">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Harvest Depth:</span>
+                  <span>45 Meters</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Sensory Notes:</span>
+                  <span class="text-ocean-cyan">Umami Butter, Flaky Gold, Brine</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+              <span class="text-2xl font-black font-mono text-white">$9.00</span>
+              <button onclick="addToOrder('Sea Salt Brioche & Kelp Butter', 9.00)" class="px-4 py-2 rounded-xl bg-ocean-cyan/20 hover:bg-ocean-cyan text-ocean-cyan hover:text-ocean-deepBlack font-mono text-xs font-bold transition-all border border-ocean-cyan/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Flight
+              </button>
+            </div>
+          </div>
+
+          <!-- Dish 3: Mesopelagic -->
+          <div class="menu-item-card hydro-glass p-6 rounded-3xl border border-white/10 hydro-glass-hover flex flex-col justify-between" data-layer="mesopelagic">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 uppercase">
+                  400m // Twilight Strata
+                </span>
+                <span class="text-xs font-mono text-ocean-cyan flex items-center gap-1">
+                  <i class="fa-solid fa-circle-radiation text-[10px]"></i> High Lucidity
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-1.5">Mesopelagic Smoked Cortado</h3>
+              <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                Single-estate Colombian Geisha espresso brewed with mineralized deep-sea desalinated spring water, topped with smoked sea-salt foam and roasted cacao nibs.
+              </p>
+
+              <div class="space-y-1.5 mb-5 text-[11px] font-mono text-slate-300">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Water Origin:</span>
+                  <span>Mariana Desalination Core</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Sensory Notes:</span>
+                  <span class="text-ocean-cyan">Bergamot, Peat Smoke, Caramel</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+              <span class="text-2xl font-black font-mono text-white">$14.00</span>
+              <button onclick="addToOrder('Mesopelagic Smoked Cortado', 14.00)" class="px-4 py-2 rounded-xl bg-ocean-cyan/20 hover:bg-ocean-cyan text-ocean-cyan hover:text-ocean-deepBlack font-mono text-xs font-bold transition-all border border-ocean-cyan/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Flight
+              </button>
+            </div>
+          </div>
+
+          <!-- Dish 4: Mesopelagic Molecular -->
+          <div class="menu-item-card hydro-glass p-6 rounded-3xl border border-white/10 hydro-glass-hover flex flex-col justify-between" data-layer="mesopelagic">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 uppercase">
+                  800m // Deep Twilight
+                </span>
+                <span class="text-xs font-mono text-purple-400 flex items-center gap-1">
+                  <i class="fa-solid fa-flask text-[10px]"></i> Molecular Infusion
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-1.5">Twilight Jellyfish Elixir</h3>
+              <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                Non-alcoholic botanical distillate with clarified butterfly pea flower tea, yuzu pearls, carbonated ocean tonic, and floating sphere of edible agar suspended mid-glass.
+              </p>
+
+              <div class="space-y-1.5 mb-5 text-[11px] font-mono text-slate-300">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">pH Transition:</span>
+                  <span>Violet to Radiant Cyan</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Sensory Notes:</span>
+                  <span class="text-ocean-cyan">Yuzu Tart, Crisp Petals, Fizz</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+              <span class="text-2xl font-black font-mono text-white">$16.50</span>
+              <button onclick="addToOrder('Twilight Jellyfish Elixir', 16.50)" class="px-4 py-2 rounded-xl bg-ocean-cyan/20 hover:bg-ocean-cyan text-ocean-cyan hover:text-ocean-deepBlack font-mono text-xs font-bold transition-all border border-ocean-cyan/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Flight
+              </button>
+            </div>
+          </div>
+
+          <!-- Dish 5: Bathypelagic Midnight -->
+          <div class="menu-item-card hydro-glass p-6 rounded-3xl border border-white/10 hydro-glass-hover flex flex-col justify-between" data-layer="bathypelagic">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/40 uppercase">
+                  1,500m // Midnight Realm
+                </span>
+                <span class="text-xs font-mono text-pink-400 flex items-center gap-1">
+                  <i class="fa-solid fa-fire-burner text-[10px]"></i> 4-ATM Hyperbaric
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-1.5">Hyperbaric Trench Nitro Cold Brew</h3>
+              <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                Steeped under 4.2 bars of hydrostatic chamber pressure for 72 hours. Infused with micro-bubbles of pure nitrogen, black activated coconut charcoal, and salted caramel beads.
+              </p>
+
+              <div class="space-y-1.5 mb-5 text-[11px] font-mono text-slate-300">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Pressure Method:</span>
+                  <span>Isobaric Nitro Jet</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Sensory Notes:</span>
+                  <span class="text-ocean-cyan">Dark Cocoa, Velvet Stout, Kelp Salt</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+              <span class="text-2xl font-black font-mono text-white">$15.00</span>
+              <button onclick="addToOrder('Hyperbaric Trench Nitro Cold Brew', 15.00)" class="px-4 py-2 rounded-xl bg-ocean-cyan/20 hover:bg-ocean-cyan text-ocean-cyan hover:text-ocean-deepBlack font-mono text-xs font-bold transition-all border border-ocean-cyan/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Flight
+              </button>
+            </div>
+          </div>
+
+          <!-- Dish 6: Bathypelagic Trench Pastry -->
+          <div class="menu-item-card hydro-glass p-6 rounded-3xl border border-white/10 hydro-glass-hover flex flex-col justify-between" data-layer="bathypelagic">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/40 uppercase">
+                  3,000m // Abyssal Floor
+                </span>
+                <span class="text-xs font-mono text-purple-400 flex items-center gap-1">
+                  <i class="fa-solid fa-gem text-[10px]"></i> Signature Dessert
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-white mb-1.5">Obsidian Trench Pearl Tart</h3>
+              <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                Squid-ink infused shortcrust shell filled with 70% dark Valrhona chocolate ganache, molten sea buckthorn center, and a shimmering sugar dome mimicking abyssal venting.
+              </p>
+
+              <div class="space-y-1.5 mb-5 text-[11px] font-mono text-slate-300">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Culinary Accent:</span>
+                  <span>24k Silver Mirror Glaze</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Sensory Notes:</span>
+                  <span class="text-ocean-cyan">Bitter Cocoa, Molten Citrus, Crunch</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+              <span class="text-2xl font-black font-mono text-white">$18.00</span>
+              <button onclick="addToOrder('Obsidian Trench Pearl Tart', 18.00)" class="px-4 py-2 rounded-xl bg-ocean-cyan/20 hover:bg-ocean-cyan text-ocean-cyan hover:text-ocean-deepBlack font-mono text-xs font-bold transition-all border border-ocean-cyan/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Flight
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasting Cart Bar (Real-time feedback) -->
+        <div id="tasting-flight-bar" class="hydro-glass p-5 rounded-2xl border border-ocean-cyan/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-ocean-cyan/20 text-ocean-cyan flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-basket-shopping"></i>
+            </div>
+            <div>
+              <span class="text-slate-300 font-bold">Current Tasting Flight:</span>
+              <span id="cart-item-count" class="text-ocean-cyan ml-1">0 items selected ($0.00)</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button onclick="clearTastingFlight()" class="text-slate-400 hover:text-white transition-colors">
+              Reset Flight
+            </button>
+            <button onclick="openBookingModalWithFlight()" class="px-4 py-2 rounded-xl bg-ocean-cyan text-ocean-deepBlack font-bold uppercase tracking-wider hover:opacity-90 transition-all">
+              Attach to Table Reservation
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: SUB-AQUATIC ENGINEERING & SUSTAINABILITY (Believability)       -->
+    <!-- ========================================================================= -->
+    <section id="engineering" class="relative py-24 px-4 max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ocean-cyan/10 border border-ocean-cyan/30 text-xs font-mono text-ocean-cyan mb-2">
+          <i class="fa-solid fa-screwdriver-wrench text-xs"></i>
+          <span>SECTION 04 // LIFE SUPPORT & ENGINEERING</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
+          HOW WE THRIVE <span class="ocean-text-gradient">AT DEPTH</span>
+        </h2>
+        <p class="max-w-xl mx-auto text-slate-300 text-sm">
+          Delivering Michelin-tier gastronomy while maintaining 1.0 ATM surface comfort inside an extreme hydro-environment.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Spec 1 -->
+        <div class="hydro-glass p-8 rounded-3xl border border-white/10 hydro-glass-hover relative overflow-hidden">
+          <div class="text-5xl font-mono font-black text-ocean-cyan/10 absolute top-4 right-4">01</div>
+          <div class="w-12 h-12 rounded-2xl bg-ocean-cyan/20 text-ocean-cyan flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-shield-virus"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">400mm Quartz Crystal Shell</h3>
+          <p class="text-slate-400 text-xs leading-relaxed mb-4">
+            Custom molded borosilicate quartz crystal panels tested to withstand 65 bars of hydrostatic surge pressure, providing 99.4% optical clarity without chromatic aberration.
+          </p>
+          <div class="text-[11px] font-mono text-ocean-cyan">Factor of Safety: 6.8x</div>
+        </div>
+
+        <!-- Spec 2 -->
+        <div class="hydro-glass p-8 rounded-3xl border border-white/10 hydro-glass-hover relative overflow-hidden">
+          <div class="text-5xl font-mono font-black text-ocean-cyan/10 absolute top-4 right-4">02</div>
+          <div class="w-12 h-12 rounded-2xl bg-ocean-teal/20 text-ocean-teal flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-arrows-spin"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Atmospheric Scrubbers & O₂</h3>
+          <p class="text-slate-400 text-xs leading-relaxed mb-4">
+            Closed-circuit cryogenic air revitalization and living kelp wall bio-filters cycle cabin air 14 times per hour, guaranteeing 21% O₂ and crisp sea-pine aromas.
+          </p>
+          <div class="text-[11px] font-mono text-ocean-teal">Cabin Air Index: Cleanroom Grade 100</div>
+        </div>
+
+        <!-- Spec 3 -->
+        <div class="hydro-glass p-8 rounded-3xl border border-white/10 hydro-glass-hover relative overflow-hidden">
+          <div class="text-5xl font-mono font-black text-ocean-cyan/10 absolute top-4 right-4">03</div>
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Thermal Ocean Energy (OTEC)</h3>
+          <p class="text-slate-400 text-xs leading-relaxed mb-4">
+            Powered 100% off-grid utilizing deep ocean temperature gradients between cold abyssal upwellings and sunlit surface currents, zero emissions into the marine sanctuary.
+          </p>
+          <div class="text-[11px] font-mono text-purple-300">Energy Footprint: Net-Positive Marine Hub</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: ACCESS SHUTTLE, LOCATION MATRIX & HOURS                        -->
+    <!-- ========================================================================= -->
+    <section id="location" class="relative py-24 px-4 bg-ocean-abyss/30 border-t border-ocean-cyan/15">
+      <div class="max-w-6xl mx-auto">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <!-- Left: Information & Hours -->
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ocean-cyan/10 border border-ocean-cyan/30 text-xs font-mono text-ocean-cyan mb-4">
+              <i class="fa-solid fa-location-dot text-xs"></i>
+              <span>SECTION 05 // LOGISTICS & ACCESS MATRIX</span>
+            </div>
+
+            <h2 class="text-3xl sm:text-5xl font-black text-white mb-4 tracking-tight">
+              HOW TO <span class="ocean-text-gradient">DESCEND</span>
+            </h2>
+
+            <p class="text-slate-300 text-sm leading-relaxed mb-6">
+              AQUARIA is situated in the West Coast Marine Biosphere Trench. Guests board our pressurized glass elevator capsule from the Surface Marine Terminal, descending 120 meters in 90 seconds.
+            </p>
+
+            <!-- Shuttle Timetable Board -->
+            <div class="hydro-glass p-5 rounded-2xl border border-white/10 mb-6 font-mono text-xs">
+              <div class="flex items-center justify-between pb-3 border-b border-white/10 text-slate-400 font-bold">
+                <span>DESCENT SHUTTLE // D-POD</span>
+                <span>DEPARTURE</span>
+                <span>STATUS</span>
+              </div>
+              <div class="space-y-2.5 mt-3">
+                <div class="flex items-center justify-between text-slate-200">
+                  <span>Capsule Alpha (Nautilus-01)</span>
+                  <span class="text-ocean-cyan">Every 15 min</span>
+                  <span class="text-emerald-400">Boarding</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-200">
+                  <span>Capsule Beta (Seabed Express)</span>
+                  <span class="text-ocean-cyan">Every 30 min</span>
+                  <span class="text-sky-400">On Time</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-200">
+                  <span>Private VIP Pod (Poseidon)</span>
+                  <span class="text-purple-400">On-Demand</span>
+                  <span class="text-slate-400">Standby</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Operating Hours -->
+            <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+              <div class="p-3.5 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-slate-400 uppercase text-[10px] block mb-1">Diurnal Photic Hours</span>
+                <span class="text-white font-bold block">08:00 AM – 05:00 PM</span>
+                <span class="text-[10px] text-sky-400 mt-1 block">Optimal sunbeam view</span>
+              </div>
+              <div class="p-3.5 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-slate-400 uppercase text-[10px] block mb-1">Nocturnal Biolum Shift</span>
+                <span class="text-white font-bold block">06:00 PM – 01:30 AM</span>
+                <span class="text-[10px] text-ocean-cyan mt-1 block">Peak glowing plankton</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Vector Radar Canvas -->
+          <div class="hydro-glass p-6 rounded-3xl border border-ocean-cyan/30 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2 text-xs font-mono text-ocean-cyan">
+                <span class="w-2 h-2 rounded-full bg-ocean-cyan animate-pulse"></span>
+                <span>SUB-SURFACE RADAR // LIVE POSITIONING</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">COORDS: 18°55'N, 72°49'E</span>
+            </div>
+
+            <div class="relative h-72 sm:h-80 rounded-2xl overflow-hidden bg-ocean-deepBlack border border-white/10 flex items-center justify-center">
+              <canvas id="radar-canvas" class="w-full h-full"></canvas>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-slate-400">
+              <span>Hyperloop Connection: Active</span>
+              <button onclick="pingSonarRadar()" class="text-ocean-cyan hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-satellite-dish"></i> Ping Sonar
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SECTION 6: FINAL INVITATION & CALL-TO-ACTION                              -->
+    <!-- ========================================================================= -->
+    <section class="relative py-24 px-4 overflow-hidden text-center">
+      <div class="caustic-overlay"></div>
+
+      <div class="max-w-3xl mx-auto relative z-10">
+        <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-ocean-cyan to-sky-600 mx-auto flex items-center justify-center text-ocean-deepBlack text-2xl shadow-xl shadow-ocean-cyan/30 mb-6 animate-float-gentle">
+          <i class="fa-solid fa-anchor"></i>
+        </div>
+
+        <h2 class="text-4xl sm:text-6xl font-black text-white mb-6 tracking-tight">
+          READY FOR YOUR <br>
+          <span class="ocean-text-gradient">DEEP DESCENT?</span>
+        </h2>
+
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-8 max-w-xl mx-auto">
+          Limited to 40 guests per immersion window to preserve acoustic quietude and ensure unobstructed glass observatory views.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <button onclick="openBookingModal()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-ocean-cyan via-ocean-teal to-sky-500 text-ocean-deepBlack font-black font-mono text-sm uppercase tracking-wider shadow-2xl shadow-ocean-cyan/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Reserve Table & Capsule Pass</span>
+          </button>
+          
+          <button onclick="openSommelierModal()" class="px-6 py-4 rounded-2xl hydro-glass hover:bg-white/5 text-purple-300 border border-purple-500/40 text-sm font-mono transition-all flex items-center gap-2">
+            <i class="fa-solid fa-comment-dots"></i>
+            <span>Ask Deep-Sea AI Sommelier</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with ACM Buildathon Context -->
+  <footer class="relative z-20 hydro-glass border-t border-ocean-cyan/20 py-12 px-4 text-xs font-mono text-slate-400">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-ocean-cyan to-ocean-twilight flex items-center justify-center text-ocean-deepBlack font-bold text-sm">
+          <i class="fa-solid fa-water"></i>
+        </div>
+        <div>
+          <div class="text-slate-200 font-bold">AQUARIA // SUB-AQUATIC HYDRO-CAFÉ</div>
+          <div class="text-[10px] text-slate-500">MITS ACM Chapter Buildathon · Problem Statement ACM/PS/02</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-6">
+        <a href="#hero" class="hover:text-ocean-cyan transition-colors">Surface Ascent</a>
+        <button onclick="openBookingModal()" class="hover:text-ocean-cyan transition-colors">Table Booking</button>
+        <button onclick="openSommelierModal()" class="hover:text-purple-300 transition-colors">AI Concierge</button>
+      </div>
+
+      <div class="text-slate-500 text-center md:text-right">
+        Submerged at 18°55'N, 72°49'E · NAAC A++ Alignment
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: SUB-AQUATIC TABLE RESERVATION & HOLOGRAPHIC PASS                -->
+  <!-- ========================================================================= -->
+  <div id="booking-modal" class="fixed inset-0 z-50 bg-ocean-deepBlack/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="hydro-glass w-full max-w-lg rounded-3xl border border-ocean-cyan/40 p-6 flex flex-col max-h-[90vh] overflow-y-auto shadow-2xl">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-ocean-cyan/20 text-ocean-cyan flex items-center justify-center text-sm border border-ocean-cyan/30">
+            <i class="fa-solid fa-anchor"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-sans">Reserve Sub-Aquatic Table</h3>
+            <span class="text-[10px] font-mono text-ocean-cyan">Includes 90-second Descent Capsule Pass</span>
+          </div>
+        </div>
+        <button onclick="closeBookingModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Booking Form -->
+      <form onsubmit="handleReservationSubmit(event)" class="space-y-4 text-xs font-mono">
+        
+        <!-- Observatory Pod Selection -->
+        <div>
+          <label class="block text-slate-300 mb-1.5 font-bold">1. Select Observatory Chamber</label>
+          <select id="reserve-chamber" required class="w-full px-3.5 py-2.5 rounded-xl bg-ocean-deepBlack border border-white/20 text-white focus:outline-none focus:border-ocean-cyan">
+            <option value="Coral Rotunda Window (360° Reef View)">Coral Rotunda Window (360° Reef View) - Zone A</option>
+            <option value="Central Jellyfish Atrium Pillar">Central Jellyfish Atrium Pillar - Zone B</option>
+            <option value="Deep Trench Private Pod (Submerged -120m)">Deep Trench Private Pod (Submerged -120m) - VIP</option>
+            <option value="Hydroponic Spirulina Bar Seat">Hydroponic Spirulina Bar Seat - Solo Voyager</option>
+          </select>
+        </div>
+
+        <!-- Party Size & Shift -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 mb-1.5 font-bold">2. Party Size</label>
+            <select id="reserve-party" class="w-full px-3.5 py-2.5 rounded-xl bg-ocean-deepBlack border border-white/20 text-white focus:outline-none focus:border-ocean-cyan">
+              <option value="1 Voyager">1 Voyager</option>
+              <option value="2 Voyagers" selected>2 Voyagers</option>
+              <option value="4 Voyagers">4 Voyagers</option>
+              <option value="6 Voyagers (Private Pod)">6 Voyagers (Private Pod)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 mb-1.5 font-bold">3. Photic Shift</label>
+            <select id="reserve-shift" class="w-full px-3.5 py-2.5 rounded-xl bg-ocean-deepBlack border border-white/20 text-white focus:outline-none focus:border-ocean-cyan">
+              <option value="Diurnal Sunlit (11:30 AM)">Diurnal Sunlit (11:30 AM)</option>
+              <option value="Twilight Descent (04:30 PM)">Twilight Descent (04:30 PM)</option>
+              <option value="Nocturnal Bioluminescent (08:00 PM)" selected>Nocturnal Biolum (08:00 PM)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Guest Details -->
+        <div>
+          <label class="block text-slate-300 mb-1.5 font-bold">4. Primary Guest Name</label>
+          <input type="text" id="reserve-name" required placeholder="Dr. / Explorer Full Name" class="w-full px-3.5 py-2.5 rounded-xl bg-ocean-deepBlack border border-white/20 text-white placeholder-slate-500 focus:outline-none focus:border-ocean-cyan">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 mb-1.5 font-bold">5. Contact / Confirmation Email</label>
+          <input type="email" id="reserve-email" required placeholder="explorer@marine-institute.org" class="w-full px-3.5 py-2.5 rounded-xl bg-ocean-deepBlack border border-white/20 text-white placeholder-slate-500 focus:outline-none focus:border-ocean-cyan">
+        </div>
+
+        <!-- Pre-Attached Flight Status -->
+        <div id="modal-flight-summary" class="p-3 rounded-xl bg-ocean-cyan/10 border border-ocean-cyan/30 text-[11px] text-ocean-cyan flex items-center justify-between">
+          <span>Tasting Flight Pre-Selections:</span>
+          <span id="modal-flight-detail" class="font-bold">None</span>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-ocean-cyan via-ocean-teal to-sky-500 text-ocean-deepBlack font-black font-mono text-xs uppercase tracking-wider shadow-lg shadow-ocean-cyan/30 hover:scale-[1.02] transition-all">
+          Generate Boarding Pass & Confirm Table
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: GEMINI 3 FLASH DEEP-SEA AI SOMMELIER ("NAUTILA AI")              -->
+  <!-- ========================================================================= -->
+  <div id="sommelier-modal" class="fixed inset-0 z-50 bg-ocean-deepBlack/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="hydro-glass w-full max-w-xl rounded-3xl border border-purple-500/40 p-6 flex flex-col max-h-[85vh] shadow-2xl">
+      
+      <!-- AI Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-sm border border-purple-500/30">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-sans">Nautila AI // Deep-Sea Sommelier</h3>
+            <span class="text-[10px] font-mono text-purple-300">Powered by Gemini 3 Flash · Gastronomic Intelligence</span>
+          </div>
+        </div>
+        <button onclick="closeSommelierModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Messages History -->
+      <div id="sommelier-messages" class="flex-1 overflow-y-auto py-4 space-y-3 font-sans text-xs">
+        <div class="flex items-start gap-2.5">
+          <div class="w-6 h-6 rounded-full bg-purple-500/30 text-purple-300 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5 font-mono">
+            AI
+          </div>
+          <div class="hydro-glass p-3.5 rounded-2xl max-w-[85%] text-slate-200 leading-relaxed border border-purple-500/30">
+            Welcome to the depths! I am <strong>Nautila AI</strong>, your culinary sommelier. Ask me about our hyperbaric brewing, bioluminescent phytoplankton extracts, or which stratum layer cocktail pairs best with your palate!
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick prompts -->
+      <div class="py-2 flex flex-wrap gap-1.5 text-[11px] font-mono">
+        <button onclick="sendQuickSommelierPrompt('What makes the Bioluminescent Coral Latte glow?')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-ocean-cyan border border-white/5">
+          ✨ Why does it glow?
+        </button>
+        <button onclick="sendQuickSommelierPrompt('Recommend a 3-course deep sea tasting flight.')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-purple-300 border border-white/5">
+          ☕ Recommend a Flight
+        </button>
+        <button onclick="sendQuickSommelierPrompt('How does hyperbaric pressure extraction work?')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-sky-300 border border-white/5">
+          🧪 Pressure Extraction
+        </button>
+      </div>
+
+      <!-- Input Bar -->
+      <form onsubmit="handleSommelierSubmit(event)" class="pt-3 border-t border-white/10 flex gap-2">
+        <input 
+          type="text" 
+          id="sommelier-input" 
+          placeholder="Ask Nautila about deep-sea flavors, pairings, or dome specs..." 
+          class="flex-1 px-4 py-3 rounded-xl bg-ocean-deepBlack border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-400 font-mono"
+        >
+        <button 
+          type="submit" 
+          id="sommelier-send-btn"
+          class="px-5 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-ocean-cyan text-ocean-deepBlack font-bold text-xs flex items-center gap-1.5 shadow-lg"
+        >
+          <span>Ask</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: WEB AUDIO SYNTH, PROCEDURAL CANVAS, RADAR, & GEMINI AI        -->
+  <!-- ========================================================================= -->
+  <script>
+    // State Tracking
+    let currentDepth = 120; // in meters
+    let audioPlaying = false;
+    let audioContext = null;
+    let hydroDroneOsc = null;
+    let hydroGainNode = null;
+    let bubbleInterval = null;
+    let tastingCart = [];
+
+    // 1. Web Audio Engine (Synthesizes deep hydro-drones and water bubble sounds)
+    function initHydroAudio() {
+      if (audioContext) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContextClass();
+      } catch (e) {
+        console.warn("Web Audio not supported.");
+      }
+    }
+
+    function toggleHydroAudio() {
+      initHydroAudio();
+      if (!audioContext) return;
+
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const icon = document.getElementById('audio-btn-icon');
+      const text = document.getElementById('audio-btn-text');
+
+      if (!audioPlaying) {
+        // Start Deep Hydro-Resonant Drone
+        hydroDroneOsc = audioContext.createOscillator();
+        hydroGainNode = audioContext.createGain();
+
+        // 46 Hz base oceanic hum
+        hydroDroneOsc.type = 'sine';
+        hydroDroneOsc.frequency.setValueAtTime(46, audioContext.currentTime);
+
+        hydroGainNode.gain.setValueAtTime(0.06, audioContext.currentTime);
+        hydroDroneOsc.connect(hydroGainNode);
+        hydroGainNode.connect(audioContext.destination);
+        hydroDroneOsc.start();
+
+        // Trigger periodic soft bubble sounds
+        bubbleInterval = setInterval(() => {
+          if (audioPlaying && Math.random() > 0.4) {
+            playSynthesizedBubble();
+          }
+        }, 1800);
+
+        audioPlaying = true;
+        icon.className = 'fa-solid fa-volume-high text-ocean-cyan';
+        text.innerText = 'Audio: ON';
+        showToast("Hydrophone Active: 46Hz deep marine resonance online", "cyan");
+      } else {
+        if (hydroGainNode) {
+          hydroGainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.4);
+          setTimeout(() => {
+            if (hydroDroneOsc) {
+              hydroDroneOsc.stop();
+              hydroDroneOsc.disconnect();
+            }
+          }, 450);
+        }
+        clearInterval(bubbleInterval);
+        audioPlaying = false;
+        icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+        text.innerText = 'Audio: Mute';
+        showToast("Ambient Audio Muted", "slate");
+      }
+    }
+
+    function playSynthesizedBubble() {
+      if (!audioContext) return;
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        const startFreq = 220 + Math.random() * 300;
+        const endFreq = startFreq + 180;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(startFreq, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, audioContext.currentTime + 0.12);
+
+        gain.gain.setValueAtTime(0.03, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.12);
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.13);
+      } catch (e) {}
+    }
+
+    function playSonarBlip() {
+      initHydroAudio();
+      if (!audioContext) return;
+      if (audioContext.state === 'suspended') audioContext.resume();
+
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(840, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.08, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.6);
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.65);
+      } catch (e) {}
+    }
+
+    // 2. Procedural Ocean Background Canvas (Rays, Bubbles, Marine silhouettes)
+    const oceanCanvas = document.getElementById('ocean-canvas');
+    const oceanCtx = oceanCanvas.getContext('2d');
+    let canvasWidth, canvasHeight;
+    const bubbles = [];
+    const marineSilhouettes = [];
+
+    function resizeOceanCanvas() {
+      canvasWidth = oceanCanvas.width = window.innerWidth;
+      canvasHeight = oceanCanvas.height = window.innerHeight;
+    }
+
+    // Initialize random bubble particles
+    function initBubbles() {
+      bubbles.length = 0;
+      const count = Math.floor(window.innerWidth / 24);
+      for (let i = 0; i < count; i++) {
+        bubbles.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 4 + 1.5,
+          speed: Math.random() * 1.2 + 0.4,
+          wobble: Math.random() * Math.PI * 2,
+          wobbleSpeed: Math.random() * 0.03 + 0.01
+        });
+      }
+    }
+
+    // Initialize swimming silhouettes
+    function initMarineSilhouettes() {
+      marineSilhouettes.length = 0;
+      // 3 fish groups & 1 gentle manta ray
+      marineSilhouettes.push({
+        type: 'manta',
+        x: -120,
+        y: window.innerHeight * 0.35,
+        scale: 1,
+        speed: 0.6,
+        wingPhase: 0
+      });
+
+      for (let i = 0; i < 4; i++) {
+        marineSilhouettes.push({
+          type: 'fish',
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight * 0.7,
+          scale: Math.random() * 0.6 + 0.4,
+          speed: Math.random() * 1.2 + 0.8,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function renderOceanLoop() {
+      oceanCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      // Render Light Caustic Rays from surface
+      const time = Date.now() * 0.001;
+      const causticIntensity = Math.max(0.04, 0.25 - (currentDepth / 2500));
+      oceanCtx.save();
+      oceanCtx.fillStyle = `rgba(0, 245, 212, ${causticIntensity})`;
+      
+      for (let i = 0; i < 6; i++) {
+        oceanCtx.beginPath();
+        const startX = (canvasWidth / 5) * i + Math.sin(time + i) * 60;
+        oceanCtx.moveTo(startX, 0);
+        oceanCtx.lineTo(startX + 180 + Math.cos(time + i) * 80, canvasHeight);
+        oceanCtx.lineTo(startX + 260 + Math.cos(time + i) * 80, canvasHeight);
+        oceanCtx.lineTo(startX + 60, 0);
+        oceanCtx.closePath();
+        oceanCtx.fill();
+      }
+      oceanCtx.restore();
+
+      // Render Rising Bubbles
+      oceanCtx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+      oceanCtx.strokeStyle = 'rgba(0, 245, 212, 0.4)';
+      oceanCtx.lineWidth = 0.8;
+
+      bubbles.forEach(b => {
+        b.y -= b.speed;
+        b.wobble += b.wobbleSpeed;
+        const currentX = b.x + Math.sin(b.wobble) * 8;
+
+        if (b.y < -20) {
+          b.y = canvasHeight + 10;
+          b.x = Math.random() * canvasWidth;
+        }
+
+        oceanCtx.beginPath();
+        oceanCtx.arc(currentX, b.y, b.r, 0, Math.PI * 2);
+        oceanCtx.fill();
+        oceanCtx.stroke();
+      });
+
+      // Render Marine Silhouettes
+      marineSilhouettes.forEach(s => {
+        s.x += s.speed;
+        if (s.x > canvasWidth + 200) {
+          s.x = -180;
+          s.y = Math.random() * (canvasHeight * 0.8);
+        }
+
+        oceanCtx.save();
+        oceanCtx.translate(s.x, s.y);
+
+        if (s.type === 'manta') {
+          s.wingPhase += 0.02;
+          const wingSway = Math.sin(s.wingPhase) * 6;
+          oceanCtx.fillStyle = 'rgba(2, 28, 56, 0.35)';
+          oceanCtx.beginPath();
+          oceanCtx.moveTo(0, 0);
+          oceanCtx.bezierCurveTo(20, -15 - wingSway, 60, -25 - wingSway, 80, -5);
+          oceanCtx.bezierCurveTo(40, 5, 20, 10, 0, 8);
+          oceanCtx.bezierCurveTo(-20, 10, -40, 5, -80, -5);
+          oceanCtx.bezierCurveTo(-60, -25 - wingSway, -20, -15 - wingSway, 0, 0);
+          oceanCtx.fill();
+
+          // Tail
+          oceanCtx.beginPath();
+          oceanCtx.moveTo(0, 8);
+          oceanCtx.lineTo(0, 45);
+          oceanCtx.strokeStyle = 'rgba(2, 28, 56, 0.35)';
+          oceanCtx.lineWidth = 2;
+          oceanCtx.stroke();
+        } else {
+          // Fish silhouette
+          s.phase += 0.08;
+          const tailWag = Math.sin(s.phase) * 3;
+          oceanCtx.scale(s.scale, s.scale);
+          oceanCtx.fillStyle = 'rgba(0, 245, 212, 0.12)';
+          oceanCtx.beginPath();
+          oceanCtx.ellipse(0, 0, 18, 6, 0, 0, Math.PI * 2);
+          oceanCtx.fill();
+          // Tail
+          oceanCtx.beginPath();
+          oceanCtx.moveTo(-16, 0);
+          oceanCtx.lineTo(-24, -6 + tailWag);
+          oceanCtx.lineTo(-24, 6 + tailWag);
+          oceanCtx.closePath();
+          oceanCtx.fill();
+        }
+
+        oceanCtx.restore();
+      });
+
+      requestAnimationFrame(renderOceanLoop);
+    }
+
+    // 3. Depth Slider Logic (Adjusts atmospheric readings, colors & density)
+    function handleDepthSlider(val) {
+      currentDepth = parseInt(val, 10);
+
+      const depthReadout = document.getElementById('readout-depth');
+      const pressureReadout = document.getElementById('readout-pressure');
+      const tempReadout = document.getElementById('readout-temp');
+      const luxReadout = document.getElementById('readout-lux');
+      const zoneName = document.getElementById('slider-zone-name');
+      const heroPressure = document.getElementById('hero-pressure-reading');
+
+      // 1 ATM per 10m depth + 1 ATM surface
+      const atmospheres = (1 + (currentDepth / 10)).toFixed(1);
+      const temp = Math.max(1.8, (28 - (currentDepth * 0.007))).toFixed(1);
+      
+      depthReadout.innerText = `-${currentDepth} Meters`;
+      pressureReadout.innerText = `${atmospheres} ATM`;
+      tempReadout.innerText = `${temp} °C`;
+      heroPressure.innerText = `${atmospheres} ATMOSPHERES`;
+
+      if (currentDepth <= 200) {
+        zoneName.innerText = "Epipelagic (Sunlit Coral Reef)";
+        luxReadout.innerText = `${Math.round(100 - (currentDepth / 2.2))}% Photic`;
+        document.body.style.backgroundColor = '#031930';
+      } else if (currentDepth <= 1000) {
+        zoneName.innerText = "Mesopelagic (Twilight Realm)";
+        luxReadout.innerText = "5% Photic Luminescence";
+        document.body.style.backgroundColor = '#020d1a';
+      } else {
+        zoneName.innerText = "Bathypelagic / Hadal (Midnight Trench)";
+        luxReadout.innerText = "0% Absolute Deep Lux";
+        document.body.style.backgroundColor = '#01060e';
+      }
+
+      // If hydro drone is active, adjust frequency slightly for depth feel
+      if (hydroDroneOsc && audioPlaying) {
+        const targetFreq = 46 - Math.min(22, (currentDepth / 200));
+        hydroDroneOsc.frequency.setValueAtTime(targetFreq, audioContext.currentTime);
+      }
+    }
+
+    function triggerDepthBurst() {
+      playSonarBlip();
+      showToast("Hydro-wave pulse emitted: +2.4 Bar pressure ripple", "cyan");
+      // Accelerate bubbles
+      bubbles.forEach(b => {
+        b.speed *= 3.5;
+        setTimeout(() => b.speed /= 3.5, 2500);
+      });
+    }
+
+    // 4. Observatory Canvas Simulator
+    const observatoryRooms = [
+      { title: "The Central Coral Rotunda", desc: "Chamber A · 12-meter high reinforced quartz dome with 360° reef exposure", species: "48 Coral Fish Visible" },
+      { title: "Bioluminescent Jellyfish Atrium", desc: "Chamber B · Hydro-acoustic lounge with suspended glowing Pelagia pillars", species: "12 Moon Jellies Drifting" },
+      { title: "The Mariana Trench Bar", desc: "Chamber C · Obsidian bar with underwater trench view facing the 3,000m cliff", species: "Abyssal Angler & Siphonophores" },
+      { title: "Private Hyperbaric Pressure Pods", desc: "Private Quarters · Isolated soundproof booth with personal kelp misting", species: "Exclusive Private Reef View" }
+    ];
+
+    let currentRoomIndex = 0;
+    const obsCanvas = document.getElementById('observatory-canvas');
+    const obsCtx = obsCanvas.getContext('2d');
+
+    function switchRoom(idx) {
+      currentRoomIndex = idx;
+      const room = observatoryRooms[idx];
+      document.getElementById('gallery-room-title').innerText = room.title;
+      document.getElementById('gallery-room-desc').innerText = room.desc;
+      document.getElementById('gallery-species-count').innerText = room.species;
+      document.getElementById('observatory-cam-tag').innerText = `LIVE FEED: TRANSDUCER CAM #0${idx + 1}`;
+
+      for (let i = 0; i < 4; i++) {
+        const btn = document.getElementById(`room-btn-${i}`);
+        if (i === idx) {
+          btn.className = "room-pill px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-ocean-cyan text-ocean-deepBlack shadow-md";
+        } else {
+          btn.className = "room-pill px-3.5 py-1.5 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass";
+        }
+      }
+
+      playSynthesizedBubble();
+      renderObservatoryRoom(idx);
+    }
+
+    function renderObservatoryRoom(roomIdx) {
+      if (!obsCanvas) return;
+      const w = obsCanvas.width = obsCanvas.parentElement.clientWidth;
+      const h = obsCanvas.height = obsCanvas.parentElement.clientHeight;
+
+      obsCtx.clearRect(0, 0, w, h);
+
+      // Deep water gradient inside viewport
+      const grad = obsCtx.createLinearGradient(0, 0, 0, h);
+      if (roomIdx === 0) {
+        grad.addColorStop(0, '#034173');
+        grad.addColorStop(1, '#02182c');
+      } else if (roomIdx === 1) {
+        grad.addColorStop(0, '#2e1065');
+        grad.addColorStop(1, '#030f26');
+      } else if (roomIdx === 2) {
+        grad.addColorStop(0, '#001b33');
+        grad.addColorStop(1, '#00040a');
+      } else {
+        grad.addColorStop(0, '#042f2e');
+        grad.addColorStop(1, '#01131c');
+      }
+      obsCtx.fillStyle = grad;
+      obsCtx.fillRect(0, 0, w, h);
+
+      // Draw Glass Observatory Arches (Curved frames)
+      obsCtx.strokeStyle = 'rgba(0, 245, 212, 0.35)';
+      obsCtx.lineWidth = 3;
+      obsCtx.beginPath();
+      obsCtx.arc(w / 2, h * 1.3, w * 0.7, Math.PI, Math.PI * 2);
+      obsCtx.stroke();
+
+      obsCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      obsCtx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        obsCtx.beginPath();
+        obsCtx.moveTo((w / 4) * i, h);
+        obsCtx.lineTo(w / 2, 0);
+        obsCtx.stroke();
+      }
+
+      // Draw Room-Specific elements
+      if (roomIdx === 1) {
+        // Jellyfish glowing spheres
+        for (let j = 0; j < 5; j++) {
+          const jx = 60 + j * (w / 5);
+          const jy = h * 0.4 + Math.sin(j) * 30;
+          const radGrad = obsCtx.createRadialGradient(jx, jy, 2, jx, jy, 28);
+          radGrad.addColorStop(0, 'rgba(217, 70, 239, 0.9)');
+          radGrad.addColorStop(0.5, 'rgba(0, 245, 212, 0.4)');
+          radGrad.addColorStop(1, 'transparent');
+          obsCtx.fillStyle = radGrad;
+          obsCtx.beginPath();
+          obsCtx.arc(jx, jy, 28, 0, Math.PI * 2);
+          obsCtx.fill();
+        }
+      }
+    }
+
+    function simulateMarinePassage() {
+      playSonarBlip();
+      showToast("Chamber food-dispenser activated: Reef giants approaching dome!", "cyan");
+      renderObservatoryRoom(currentRoomIndex);
+      
+      // Draw temporary large sea creature silhouette inside viewport
+      obsCtx.fillStyle = 'rgba(0, 245, 212, 0.6)';
+      obsCtx.beginPath();
+      obsCtx.arc(obsCanvas.width / 2, obsCanvas.height / 2, 60, 0, Math.PI * 2);
+      obsCtx.fill();
+    }
+
+    // 5. Radar Canvas Logic
+    const radarCanvas = document.getElementById('radar-canvas');
+    let radarAngle = 0;
+
+    function renderRadar() {
+      if (!radarCanvas) return;
+      const ctx = radarCanvas.getContext('2d');
+      const w = radarCanvas.width = radarCanvas.parentElement.clientWidth;
+      const h = radarCanvas.height = radarCanvas.parentElement.clientHeight;
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxR = Math.min(cx, cy) - 15;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Outer rings
+      ctx.strokeStyle = 'rgba(0, 245, 212, 0.2)';
+      ctx.lineWidth = 1;
+      for (let r = maxR / 3; r <= maxR; r += maxR / 3) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Crosshairs
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - maxR);
+      ctx.lineTo(cx, cy + maxR);
+      ctx.moveTo(cx - maxR, cy);
+      ctx.lineTo(cx + maxR, cy);
+      ctx.stroke();
+
+      // Sweeping beam
+      radarAngle += 0.03;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(radarAngle);
+      
+      const sweepGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, maxR);
+      sweepGrad.addColorStop(0, 'rgba(0, 245, 212, 0.4)');
+      sweepGrad.addColorStop(1, 'rgba(0, 245, 212, 0)');
+
+      ctx.fillStyle = sweepGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, maxR, -0.3, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Center blip
+      ctx.fillStyle = '#00f5d4';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Target blips (Capsule & Reef)
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(cx + maxR * 0.45, cy - maxR * 0.2, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(renderRadar);
+    }
+
+    function pingSonarRadar() {
+      playSonarBlip();
+      showToast("Sonar ping emitted: 18 echoes received within 3.5 nautical miles.", "cyan");
+    }
+
+    // 6. Menu Filtering
+    function filterMenu(layer) {
+      const cards = document.querySelectorAll('.menu-item-card');
+      const buttons = document.querySelectorAll('.menu-filter-btn');
+
+      buttons.forEach(btn => {
+        if (btn.id === `menu-btn-${layer}`) {
+          btn.className = "menu-filter-btn px-4 py-2 rounded-xl text-xs font-mono font-bold bg-ocean-cyan text-ocean-deepBlack shadow-lg";
+        } else {
+          btn.className = "menu-filter-btn px-4 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hydro-glass";
+        }
+      });
+
+      cards.forEach(card => {
+        if (layer === 'all' || card.dataset.layer === layer) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      playSynthesizedBubble();
+    }
+
+    function addToOrder(name, price) {
+      tastingCart.push({ name, price });
+      updateCartDisplay();
+      playSynthesizedBubble();
+      showToast(`Added "${name}" to your tasting flight`, "cyan");
+    }
+
+    function clearTastingFlight() {
+      tastingCart = [];
+      updateCartDisplay();
+      showToast("Tasting flight reset", "slate");
+    }
+
+    function updateCartDisplay() {
+      const countEl = document.getElementById('cart-item-count');
+      const total = tastingCart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+      if (countEl) {
+        countEl.innerText = `${tastingCart.length} item(s) selected ($${total} USD)`;
+      }
+    }
+
+    // 7. Modals: Booking & Sommelier
+    function openBookingModal() {
+      document.getElementById('booking-modal').classList.remove('hidden');
+      updateModalFlightText();
+    }
+
+    function openBookingModalWithFlight() {
+      openBookingModal();
+    }
+
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.add('hidden');
+    }
+
+    function updateModalFlightText() {
+      const el = document.getElementById('modal-flight-detail');
+      if (tastingCart.length === 0) {
+        el.innerText = "None (À la carte dining)";
+      } else {
+        const names = tastingCart.map(i => i.name).join(', ');
+        el.innerText = `${tastingCart.length} items (${names})`;
+      }
+    }
+
+    function handleReservationSubmit(e) {
+      e.preventDefault();
+      const chamber = document.getElementById('reserve-chamber').value;
+      const party = document.getElementById('reserve-party').value;
+      const shift = document.getElementById('reserve-shift').value;
+      const name = document.getElementById('reserve-name').value;
+      const email = document.getElementById('reserve-email').value;
+
+      closeBookingModal();
+      playSonarBlip();
+
+      showToast(`Pass Generated! Reserved: ${chamber} for ${name} (${party}, ${shift}). Check ${email} for descent QR code.`, "cyan");
+    }
+
+    function openSommelierModal() {
+      document.getElementById('sommelier-modal').classList.remove('hidden');
+    }
+    function closeSommelierModal() {
+      document.getElementById('sommelier-modal').classList.add('hidden');
+    }
+
+    function toggleMobileNav() {
+      const drawer = document.getElementById('mobile-nav-drawer');
+      const icon = document.getElementById('mobile-toggle-icon');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        icon.className = 'fa-solid fa-xmark';
+      } else {
+        drawer.classList.add('hidden');
+        icon.className = 'fa-solid fa-bars';
+      }
+    }
+
+    // 8. AI Sommelier ("Nautila AI") via Gemini 3 Flash
+    async function askNautilaSommelier(userQuery) {
+      const systemPrompt = `You are "Nautila AI", the world-class Deep-Sea Sommelier and Chief Gastronomy Guide for AQUARIA, Earth's premier submerged ocean café (submerged 120m below surface in the West Coast Marine Sanctuary, built for MITS ACM Buildathon Problem Statement ACM/PS/02).
+You are poetic, scientifically knowledgeable about deep sea biology, hydrostatic pressure, ocean strata (Epipelagic, Mesopelagic, Bathypelagic, Hadal), and culinary craft.
+Key Menu Items:
+- Bioluminescent Coral Latte ($12.50) - blue spirulina and glowing phytoplankton extract.
+- Sea Salt Brioche & Kelp Butter ($9.00) - 48h cold fermented with young dulse.
+- Mesopelagic Smoked Cortado ($14.00) - Geisha espresso brewed with deep-sea desalinated mineral water.
+- Twilight Jellyfish Elixir ($16.50) - butterfly pea tea, yuzu pearls, non-alcoholic botanical.
+- Hyperbaric Trench Nitro Cold Brew ($15.00) - steeped under 4.2 bars of pressure for 72 hours.
+- Obsidian Trench Pearl Tart ($18.00) - squid-ink shell, dark Valrhona, silver glaze.
+
+Provide concise, elegant, sensory-rich answers in 2-3 sentences.`;
+
+      const apiKey = ""; // Canvas runtime provides the key automatically
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] }
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error("API call error: " + response.status);
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        return text || "At 120 meters, cold pressure intensifies aromatic extraction. I recommend our Bioluminescent Coral Latte paired with an Obsidian Trench Pearl Tart for a balanced sea-salt and cocoa harmony.";
+      } catch (err) {
+        console.warn("Using smart fallback AI response:", err);
+        return getOfflineSommelierResponse(userQuery);
+      }
+    }
+
+    function getOfflineSommelierResponse(query) {
+      const q = query.toLowerCase();
+      if (q.includes('glow') || q.includes('phytoplankton') || q.includes('latte')) {
+        return "Our Bioluminescent Coral Latte derives its celestial azure glow from micro-encapsulated Pyrocystis phytoplankton. When agitated with our ultrasonic frother, the luciferin-luciferase reaction activates for over 15 minutes of safe, edible luminescence.";
+      } else if (q.includes('flight') || q.includes('recommend') || q.includes('course')) {
+        return "For an unforgettable voyage, begin with the Sea Salt Brioche & Kelp Butter in the sunlit photic zone, transition into the Twilight Jellyfish Elixir at 800m, and conclude with the Hyperbaric Nitro Cold Brew steeped under 4.2 bars of oceanic pressure.";
+      } else if (q.includes('pressure') || q.includes('extract') || q.includes('hyperbaric')) {
+        return "Hyperbaric extraction utilizes 4 atmospheres of hydrostatic pressure in our specialized sea-chamber. This forces cold desalinated water through micro-ground single-estate beans without heat, eliminating acidity and unlocking rich velvet caramel compounds.";
+      } else {
+        return "Welcome to AQUARIA. At 120 meters beneath the waves, our kitchen crafts flavors where marine minerals meet modern molecular gastronomy. How may I guide your sensory voyage today?";
+      }
+    }
+
+    async function handleSommelierSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('sommelier-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendSommelierMessage('User', text, true);
+      input.value = '';
+
+      const tempId = appendSommelierMessage('AI', 'Consulting oceanic flavor archives...', false);
+
+      const reply = await askNautilaSommelier(text);
+      updateSommelierMessage(tempId, reply);
+    }
+
+    function sendQuickSommelierPrompt(promptText) {
+      document.getElementById('sommelier-input').value = promptText;
+      handleSommelierSubmit(new Event('submit'));
+    }
+
+    function appendSommelierMessage(sender, text, isUser = false) {
+      const container = document.getElementById('sommelier-messages');
+      const id = 'msg-' + Date.now();
+      const div = document.createElement('div');
+      div.id = id;
+      div.className = isUser ? "flex items-start justify-end gap-2" : "flex items-start gap-2.5";
+
+      if (isUser) {
+        div.innerHTML = `
+          <div class="p-3 rounded-2xl bg-purple-900/40 border border-purple-500/30 max-w-[85%] text-slate-100 font-sans text-xs">
+            ${text}
+          </div>
+          <div class="w-6 h-6 rounded-full bg-purple-500 text-slate-950 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5 font-mono">
+            U
+          </div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="w-6 h-6 rounded-full bg-purple-500/30 text-purple-300 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5 font-mono">
+            AI
+          </div>
+          <div class="hydro-glass p-3.5 rounded-2xl max-w-[85%] text-slate-200 leading-relaxed border border-purple-500/30 text-xs">
+            ${text}
+          </div>
+        `;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function updateSommelierMessage(id, newText) {
+      const el = document.getElementById(id);
+      if (el) {
+        const textContainer = el.querySelector('.hydro-glass');
+        if (textContainer) textContainer.innerHTML = newText;
+      }
+    }
+
+    // 9. Toast System
+    function showToast(message, color = 'cyan') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `hydro-glass px-4 py-3 rounded-2xl border border-ocean-cyan/40 text-xs font-mono text-white shadow-2xl flex items-center gap-2.5 transform transition-all duration-300 translate-y-4 opacity-0`;
+      toast.innerHTML = `
+        <i class="fa-solid fa-circle-check text-ocean-cyan text-sm"></i>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.remove(), 350);
+      }, 4500);
+    }
+
+    // 10. Initialization on Window Load
+    window.onload = function() {
+      resizeOceanCanvas();
+      window.addEventListener('resize', resizeOceanCanvas);
+
+      initBubbles();
+      initMarineSilhouettes();
+      renderOceanLoop();
+
+      // Render Initial Observatory View
+      switchRoom(0);
+
+      // Render Sub-surface Radar
+      renderRadar();
+
+      // Initial Welcome Message
+      setTimeout(() => {
+        showToast("Welcome to AQUARIA // Oceanic Hydro-Café (PS/02)", "cyan");
+      }, 700);
+    };
+  </script>
+</body>
+</html>
